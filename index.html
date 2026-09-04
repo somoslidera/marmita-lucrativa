@@ -3181,6 +3181,10 @@ async function afterAuth(){
         perfil=(await sb.from('marmita_perfis').select('*').eq('id',uid).single()).data;}catch(e){}
   }
   PERFIL=perfil||{papel:'cliente',org_id:null};
+  if(PERFIL.papel==='cliente'&&!PERFIL.org_id){ // comprou e está entrando pela primeira vez
+    try{const {data:novaOrg}=await sb.rpc('marmita_ativar_liberacao');
+        if(novaOrg){PERFIL.org_id=novaOrg;}}catch(e){}
+  }
   if(PERFIL.papel==='admin'||PERFIL.papel==='consultor'){IS_SUPER=(PERFIL.papel==='admin');MY_UID=uid;MY_LIMITE=(PERFIL.limite_clientes!=null?PERFIL.limite_clientes:5);MEMBRO_PERMS=null;showAdmin();}
   else{await entrarClienteRouter(uid,PERFIL.org_id,email);}
 }
@@ -3208,7 +3212,11 @@ function showUnidades(){
 }
 async function abrirUnidade(id){hideLogin();await entrarComoCliente(id,DONO_EMAIL);}
 async function entrarComoCliente(orgId,email){
-  if(!orgId){telaMensagem('Conta sem restaurante vinculado','Sua conta foi criada, mas ainda não está liberada por um administrador. Aguarde a liberação.');return;}
+  if(!orgId){telaMensagem('Ainda não encontramos sua compra',
+    'Sua conta foi criada, mas nenhuma compra foi localizada para <b>'+esc(email||'este e-mail')+'</b>.<br><br>'
+    +'Se você comprou com <b>outro e-mail</b>, saia e entre de novo usando o mesmo e-mail da compra.<br><br>'
+    +'Se comprou agora, a liberação leva alguns minutos. Recarregue a página em instantes.<br><br>'
+    +'Se o problema continuar, fale com a Lidera pelo e-mail contato@somoslidera.com.br informando o e-mail da compra.');return;}
   let org=null;try{org=(await sb.from('marmita_organizacoes').select('*').eq('id',orgId).single()).data;}catch(e){}
   if(!org){telaMensagem('Acesso indisponível','Não foi possível carregar seu restaurante. Tente novamente mais tarde.');return;}
   ORG=org;CLOUD_TS=org.atualizado_em||null;CLOUD_CONFLICT=false;SAVE_RETRY=0;CLOUD_BASE=_cloneDB(org.dados||{});
@@ -3279,7 +3287,7 @@ async function doLogin(){const email=$('#auth_email').value.trim(),pass=$('#auth
   const {error}=await sb.auth.signInWithPassword({email,password:pass});if(error)return authErr('E-mail ou senha inválidos.');await afterAuth();}
 async function doSignup(){const email=$('#auth_email').value.trim(),pass=$('#auth_pass').value;if(!email||pass.length<6)return authErr('Informe e-mail e uma senha de ao menos 6 caracteres.');
   const {error}=await sb.auth.signUp({email,password:pass});if(error)return authErr(error.message);
-  authErr('');telaMensagem('Conta criada!','Sua conta foi criada. Aguarde a liberação do acesso pela Lidera para começar a usar.');}
+  authErr('');telaMensagem('Conta criada!','Conta criada! Se você já comprou, é só entrar com este mesmo e-mail. A liberação leva alguns minutos.');}
 async function logout(){if(sb)await sb.auth.signOut();CLOUD=false;ORG=null;PERFIL=null;location.reload();}
 
 /* ---- TROCAR SENHA (logado · Configurações › Segurança) ---- */
