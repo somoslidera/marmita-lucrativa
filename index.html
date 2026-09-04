@@ -789,76 +789,7 @@ async function saveNow(){clearTimeout(window._cloudT);renderFoot();
   }
   try{localStorage.setItem(STORE_KEY,JSON.stringify(DB));}catch(e){}
   return true;}
-function seed(){
-  const i={};
-  const mk=(nome,cat,uni,valorPago,qtd)=>{const id=uid();i[id]={id,nome,cat,tipo:'pronto',uni,preco:valorPago,qtd};return id;};
-  const mkp=(nome,cat,uni,rendimento,comps)=>{const id=uid();i[id]={id,nome,cat,tipo:'preparado',uni,rendimento,comps};return id;};
-  // --- matéria-prima crua (preço da nota, na unidade de compra) ---
-  const arrozCru   = mk('Arroz branco (cru)','Grãos','kg',5.20,5);
-  const feijaoCru  = mk('Feijão carioca (cru)','Grãos','kg',8.40,1);
-  const frangoPeito= mk('Peito de frango','Proteínas','kg',18.90,1);
-  const carneMoida = mk('Carne moída (patinho)','Proteínas','kg',36.90,1);
-  const linguica   = mk('Linguiça toscana','Proteínas','kg',22.50,1);
-  const batata     = mk('Batata inglesa','Hortifruti','kg',5.90,1);
-  const macarrao   = mk('Macarrão parafuso','Mercearia','kg',6.80,1);
-  const alface     = mk('Alface crespa','Hortifruti','un',3.50,1);
-  const tomate     = mk('Tomate','Hortifruti','kg',8.90,1);
-  const cenoura    = mk('Cenoura','Hortifruti','kg',4.90,1);
-  const repolho    = mk('Repolho','Hortifruti','kg',3.90,1);
-  const cebola     = mk('Cebola','Hortifruti','kg',5.50,1);
-  const alho       = mk('Alho','Temperos','kg',28.00,1);
-  const oleo       = mk('Óleo de soja','Óleos','L',7.90,1);
-  const sal        = mk('Sal refinado','Temperos','kg',2.50,1);
-  const molhoT     = mk('Molho de tomate','Mercearia','kg',9.50,1);
-  // --- embalagem (o que faz a marmita ser marmita) ---
-  const marmitexP  = mk('Marmitex alumínio 500ml','Embalagens','un',0.78,1);
-  const marmitexM  = mk('Marmitex alumínio 750ml','Embalagens','un',0.95,1);
-  const marmitexG  = mk('Marmitex alumínio 1100ml','Embalagens','un',1.22,1);
-  const sacola     = mk('Sacola plástica','Embalagens','un',0.14,1);
-  const talher     = mk('Kit talher + guardanapo','Embalagens','un',0.22,1);
-  const etiqueta   = mk('Etiqueta de identificação','Embalagens','un',0.06,1);
-  // --- preparados: o custo real sai daqui (crus rendem menos depois de cozidos) ---
-  const arrozPronto = mkp('Arroz cozido','Grãos','g',2600,[[arrozCru,1000],[oleo,30],[alho,8],[sal,12]]);
-  const feijaoPronto= mkp('Feijão cozido','Grãos','g',2400,[[feijaoCru,1000],[oleo,25],[alho,10],[cebola,60],[sal,10]]);
-  const frangoGrelh = mkp('Frango grelhado','Proteínas','g',720,[[frangoPeito,1000],[oleo,20],[alho,8],[sal,10]]);
-  const carneRefog  = mkp('Carne moída refogada','Proteínas','g',780,[[carneMoida,1000],[oleo,20],[cebola,80],[alho,10],[molhoT,120],[sal,10]]);
-  const pureBatata  = mkp('Purê de batata','Hortifruti','g',900,[[batata,1000],[oleo,20],[sal,8]]);
-  const macarrPronto= mkp('Macarrão ao alho e óleo','Mercearia','g',2200,[[macarrao,1000],[oleo,60],[alho,20],[sal,10]]);
-  const saladaMix   = mkp('Salada mista','Hortifruti','g',950,[[alface,2],[tomate,300],[cenoura,200],[repolho,300]]);
-  const legumesRef  = mkp('Legumes refogados','Hortifruti','g',880,[[cenoura,500],[repolho,400],[oleo,20],[alho,8],[sal,6]]);
-
-  const f={};
-  const mkf=(nome,cat,o)=>{const id=uid();f[id]=Object.assign({id,nome,cat,porcoes:1,custoEmbalagem:0,precoVenda:0,precos:{},vendasMes:0,tempoPreparo:0,utensilios:'',modoPreparo:[],padraoFinalizacao:'',foto:'',comps:[],criada:hoje()},o);return id;};
-  const EMB_P=0.78+0.14+0.22+0.06, EMB_M=0.95+0.14+0.22+0.06, EMB_G=1.22+0.14+0.22+0.06;
-  mkf('Marmita P · Frango','Marmitas',{rendGramas:450,rendUni:'g',custoEmbalagem:Math.round(EMB_P*100)/100,precoVenda:18.90,precos:{ifood:24.90},vendasMes:420,tempoPreparo:4,
-    modoPreparo:['Montar o arroz e o feijão na base.','Acomodar o frango grelhado ao lado.','Fechar, etiquetar e higienizar a borda.'],
-    padraoFinalizacao:'Marmita fechada e etiquetada em até 2 minutos após a montagem.',
-    comps:[[arrozPronto,180],[feijaoPronto,110],[frangoGrelh,90],[saladaMix,70]]});
-  mkf('Marmita M · Carne moída','Marmitas',{rendGramas:600,rendUni:'g',custoEmbalagem:Math.round(EMB_M*100)/100,precoVenda:22.90,precos:{ifood:29.90},vendasMes:610,tempoPreparo:4,
-    comps:[[arrozPronto,220],[feijaoPronto,140],[carneRefog,120],[macarrPronto,60],[saladaMix,60]]});
-  mkf('Marmita G · Mista','Marmitas',{rendGramas:780,rendUni:'g',custoEmbalagem:Math.round(EMB_G*100)/100,precoVenda:27.90,precos:{ifood:35.90},vendasMes:280,tempoPreparo:5,
-    comps:[[arrozPronto,260],[feijaoPronto,160],[frangoGrelh,90],[carneRefog,90],[pureBatata,100],[saladaMix,80]]});
-  mkf('Marmita Fit · Frango e legumes','Marmitas',{rendGramas:500,rendUni:'g',custoEmbalagem:Math.round(EMB_M*100)/100,precoVenda:24.90,precos:{ifood:31.90},vendasMes:190,tempoPreparo:4,
-    comps:[[arrozPronto,150],[frangoGrelh,120],[legumesRef,140],[saladaMix,80]]});
-
-  return {
-    insumos:i, fichas:f, modulares:{},
-    fin:{regime:'simples', aliquota:6, mei:false, impostoFixo:75,
-      canais:[{id:'ifood',nome:'iFood',taxa:27,mix:30}],
-      meios:[{id:'m_din',nome:'Dinheiro',tipo:'Dinheiro',taxa:0,prazo:0},
-             {id:'m_pix',nome:'PIX',tipo:'PIX',taxa:0,prazo:0},
-             {id:'m_deb',nome:'Débito',tipo:'Débito',taxa:1.99,prazo:1},
-             {id:'m_cre',nome:'Crédito',tipo:'Crédito',taxa:3.19,prazo:30}],
-      fornecedores:[{id:uid(),nome:'Distribuidora Central',contato:''},{id:uid(),nome:'Hortifruti do Zé',contato:''}],
-      custosFixos:[], provisoes:[], funcionarios:[], socios:[], contasBancarias:[], contasPagar:[], contasReceber:[]},
-    fat:{lancado:0, mixIfood:30},
-    cmvAlvo:30,
-    prec:{modo:'cmv', margemAlvo:55, arredondar:'90'},
-    equipe:[],
-    conta:{restaurante:'Minha Marmitaria',nome:'',email:'',telefone:'',cpf:'',nascimento:''},
-    lancamentos:[], categorias:{}, cmvRegistros:[]
-  };
-}
+function seed(){return dadosExemplo();}
 
 /* ===================== MOTOR DE CÁLCULO ===================== */
 function custoInsumoBase(ins,_seen){ // custo por 1 unidade-base (g/ml/un) do insumo
@@ -1566,6 +1497,230 @@ function prepararImpressao(area,classe){
   guarda=setTimeout(fim,120000); // rede de segurança, não é o caminho normal
   if(window.self!==window.top)toast('Dentro do visualizador a impressão pode não abrir. Abra o app em uma aba própria.');
   setTimeout(()=>{try{window.print();}catch(e){toast('O navegador bloqueou a impressão. Use o menu do navegador.');fim();}},80);
+}
+
+/* ---- carrega a loja de exemplo no restaurante aberto ----
+   Serve para demonstrar o app com números reais e para o dono ver como uma
+   operação completa fica montada, antes de cadastrar a dele. */
+function carregarExemplo(){
+  const temCoisa=Object.keys(DB.insumos||{}).length||Object.keys(DB.fichas||{}).length;
+  if(temCoisa&&!confirm('Isto substitui os produtos, as marmitas e os parâmetros deste restaurante pelos da loja de exemplo.\n\nO que você já cadastrou aqui será perdido. Continuar?'))return;
+  const nomeAtual=(DB.conta&&DB.conta.restaurante)||'';
+  DB=dadosExemplo();
+  if(nomeAtual)DB.conta.restaurante=nomeAtual; // mantém o nome do restaurante que já estava aberto
+  save();renderFoot();go('dashboard');
+  toast('Loja de exemplo carregada');
+}
+
+/* =====================================================================
+   LOJA DE EXEMPLO · "Marmitaria do Bairro"
+   Operação completa e coerente: o que se compra, o que se produz, o que
+   se vende, e por quanto. Os rendimentos são reais (arroz cru rende 2,6x
+   cozido, peito de frango perde 28% na grelha), então o custo por marmita
+   que aparece na tela é o custo de verdade, não um número inventado.
+   ===================================================================== */
+function dadosExemplo(){
+  const i={};
+  const mk=(nome,cat,uni,valorPago,qtd,forn)=>{const id=uid();i[id]={id,nome,cat,tipo:'pronto',uni,preco:valorPago,qtd,fornecedor:forn||''};return id;};
+  const mkp=(nome,cat,uni,rendimento,comps)=>{const id=uid();i[id]={id,nome,cat,tipo:'preparado',uni,rendimento,comps};return id;};
+
+  const FA='Frigorífico Avenida', HZ='Hortifruti do Zé', DC='Distribuidora Central', EM='Embalagens Sul';
+
+  /* ---------- proteínas ---------- */
+  const peito    = mk('Peito de frango','Proteínas','kg',18.90,1,FA);
+  const coxa     = mk('Coxa e sobrecoxa','Proteínas','kg',12.90,1,FA);
+  const patinho  = mk('Patinho moído','Proteínas','kg',36.90,1,FA);
+  const acem     = mk('Acém em bife','Proteínas','kg',32.90,1,FA);
+  const linguica = mk('Linguiça toscana','Proteínas','kg',22.50,1,FA);
+  const tilapia  = mk('Filé de tilápia','Proteínas','kg',39.90,1,FA);
+  const ovo      = mk('Ovo branco','Proteínas','un',0.79,1,DC);
+
+  /* ---------- grãos e mercearia ---------- */
+  const arroz    = mk('Arroz branco tipo 1','Grãos','kg',26.00,5,DC);
+  const feijao   = mk('Feijão carioca','Grãos','kg',8.40,1,DC);
+  const macarrao = mk('Macarrão parafuso','Mercearia','kg',6.80,1,DC);
+  const farinha  = mk('Farinha de mandioca','Mercearia','kg',7.50,1,DC);
+  const oleo     = mk('Óleo de soja','Óleos','L',7.90,0.9,DC);
+  const sal      = mk('Sal refinado','Temperos','kg',2.50,1,DC);
+  const alho     = mk('Alho descascado','Temperos','kg',28.00,1,HZ);
+  const colorau  = mk('Colorau','Temperos','kg',12.00,0.5,DC);
+  const oregano  = mk('Orégano','Temperos','kg',45.00,0.1,DC);
+  const vinagre  = mk('Vinagre de álcool','Mercearia','L',4.20,0.75,DC);
+  const molhoT   = mk('Molho de tomate','Mercearia','kg',14.00,2,DC);
+  const extrato  = mk('Extrato de tomate','Mercearia','kg',18.00,1.7,DC);
+  const creme    = mk('Creme de leite','Laticínios','kg',12.00,1,DC);
+  const milho    = mk('Milho verde em conserva','Mercearia','kg',4.50,0.2,DC);
+  const batataP  = mk('Batata palha','Mercearia','kg',12.00,0.5,DC);
+
+  /* ---------- hortifrúti ---------- */
+  const batata   = mk('Batata inglesa','Hortifruti','kg',5.90,1,HZ);
+  const cenoura  = mk('Cenoura','Hortifruti','kg',4.90,1,HZ);
+  const chuchu   = mk('Chuchu','Hortifruti','kg',3.90,1,HZ);
+  const abobrinha= mk('Abobrinha','Hortifruti','kg',5.50,1,HZ);
+  const repolho  = mk('Repolho','Hortifruti','kg',3.90,1,HZ);
+  const alface   = mk('Alface crespa','Hortifruti','un',3.50,1,HZ);
+  const tomate   = mk('Tomate','Hortifruti','kg',8.90,1,HZ);
+  const cebola   = mk('Cebola','Hortifruti','kg',5.50,1,HZ);
+  const beterraba= mk('Beterraba','Hortifruti','kg',4.50,1,HZ);
+  const brocolis = mk('Brócolis','Hortifruti','kg',8.90,1,HZ);
+  const couve    = mk('Couve manteiga','Hortifruti','kg',9.90,1,HZ);
+  const banana   = mk('Banana prata','Hortifruti','kg',5.90,1,HZ);
+
+  /* ---------- embalagem ---------- */
+  const mxP      = mk('Marmitex alumínio 500ml','Embalagens','un',0.78,1,EM);
+  const mxM      = mk('Marmitex alumínio 750ml','Embalagens','un',0.95,1,EM);
+  const mxG      = mk('Marmitex alumínio 1100ml','Embalagens','un',1.22,1,EM);
+  const pote     = mk('Pote 250ml com tampa','Embalagens','un',0.45,1,EM);
+  const sacola   = mk('Sacola plástica','Embalagens','un',0.14,1,EM);
+  const talher   = mk('Kit talher descartável','Embalagens','un',0.22,1,EM);
+  const guard    = mk('Guardanapo','Embalagens','un',0.04,1,EM);
+  const etiq     = mk('Etiqueta de identificação','Embalagens','un',0.06,1,EM);
+
+  /* ---------- preparados: aqui mora o custo real ----------
+     rendimento = quanto sobra PRONTO a partir dos ingredientes abaixo    */
+  const arrozC   = mkp('Arroz cozido','Grãos','g',2600,[[arroz,1000],[oleo,25],[alho,8],[sal,12]]);
+  const feijaoC  = mkp('Feijão cozido','Grãos','g',2400,[[feijao,1000],[oleo,20],[alho,10],[cebola,60],[sal,10]]);
+  const frangoG  = mkp('Frango grelhado','Proteínas','g',720,[[peito,1000],[oleo,20],[alho,8],[sal,10],[oregano,2]]);
+  const frangoD  = mkp('Frango desfiado ao molho','Proteínas','g',900,[[coxa,1000],[molhoT,200],[cebola,80],[alho,10],[oleo,20],[sal,10],[colorau,4]]);
+  const carneM   = mkp('Carne moída refogada','Proteínas','g',780,[[patinho,1000],[extrato,80],[cebola,80],[alho,10],[oleo,20],[sal,10]]);
+  const bife     = mkp('Bife acebolado','Proteínas','g',760,[[acem,1000],[cebola,150],[oleo,25],[alho,8],[sal,10]]);
+  const tilapiaI = mkp('Isca de tilápia','Proteínas','g',800,[[tilapia,1000],[oleo,40],[sal,8],[alho,6]]);
+  const strog    = mkp('Strogonoff de frango','Proteínas','g',1150,[[peito,700],[creme,300],[extrato,60],[cebola,60],[oleo,20],[sal,8]]);
+  const pure     = mkp('Purê de batata','Hortifruti','g',900,[[batata,1000],[oleo,20],[sal,8]]);
+  const farofa   = mkp('Farofa temperada','Mercearia','g',1050,[[farinha,1000],[oleo,60],[cebola,80],[sal,8],[colorau,3]]);
+  const legumes  = mkp('Legumes no vapor','Hortifruti','g',880,[[cenoura,400],[chuchu,300],[abobrinha,300],[sal,6]]);
+  const brocolisR= mkp('Brócolis refogado','Hortifruti','g',820,[[brocolis,1000],[oleo,20],[alho,10],[sal,6]]);
+  const couveR   = mkp('Couve refogada','Hortifruti','g',700,[[couve,1000],[oleo,20],[alho,10],[sal,6]]);
+  const salada   = mkp('Salada mista','Hortifruti','g',950,[[alface,2],[tomate,300],[cenoura,200],[repolho,300],[vinagre,20]]);
+  const beterrabaC=mkp('Beterraba cozida','Hortifruti','g',900,[[beterraba,1000],[sal,6]]);
+  const macarraoA= mkp('Macarrão ao alho e óleo','Mercearia','g',2200,[[macarrao,1000],[oleo,60],[alho,20],[sal,10]]);
+  const linguicaR= mkp('Linguiça acebolada','Proteínas','g',820,[[linguica,1000],[cebola,120],[oleo,15]]);
+  const bananaF  = mkp('Banana frita','Hortifruti','g',780,[[banana,1000],[oleo,60]]);
+  const ovoF     = mkp('Ovo frito','Proteínas','un',12,[[ovo,12],[oleo,30],[sal,3]]);
+
+  /* ---------- embalagem por tamanho ---------- */
+  const EMB_P = 0.78+0.14+0.22+0.04+0.06;             // marmitex 500 + sacola + talher + guardanapo + etiqueta
+  const EMB_M = 0.95+0.14+0.22+0.04+0.06;
+  const EMB_G = 1.22+0.14+0.22+0.04+0.06;
+  const EMB_MS= EMB_M+0.45;                            // com pote de salada à parte
+  const r2 = v => Math.round(v*100)/100;
+
+  const f={};
+  const mkf=(nome,cat,o)=>{const id=uid();f[id]=Object.assign({id,nome,cat,porcoes:1,custoEmbalagem:0,precoVenda:0,precos:{},vendasMes:0,tempoPreparo:0,utensilios:'',modoPreparo:[],padraoFinalizacao:'',foto:'',comps:[],criada:hoje()},o);return id;};
+
+  mkf('Marmita P · Frango grelhado','Marmitas',{rendGramas:450,rendUni:'g',custoEmbalagem:r2(EMB_P),
+    precoVenda:18.90,precos:{ifood:24.90,aiqfome:21.90},vendasMes:520,tempoPreparo:4,
+    utensilios:'Concha de 150ml, pegador, balança',
+    modoPreparo:['Porcionar 180g de arroz na base da marmitex.','Acomodar 110g de feijão ao lado, sem encostar na salada.','Colocar 90g de frango grelhado no compartimento maior.','Fechar, etiquetar com data e higienizar a borda.'],
+    padraoFinalizacao:'Marmita fechada e etiquetada em até 2 minutos após a montagem. Temperatura acima de 60 graus na saída.',
+    comps:[[arrozC,180],[feijaoC,110],[frangoG,90],[salada,70]]});
+
+  mkf('Marmita M · Carne moída','Marmitas',{rendGramas:600,rendUni:'g',custoEmbalagem:r2(EMB_M),
+    precoVenda:22.90,precos:{ifood:29.90,aiqfome:26.90},vendasMes:640,tempoPreparo:4,
+    utensilios:'Concha de 200ml, pegador, balança',
+    modoPreparo:['Porcionar 220g de arroz e 140g de feijão.','Adicionar 120g de carne moída refogada.','Completar com 60g de macarrão e 60g de salada.','Fechar, etiquetar e higienizar a borda.'],
+    padraoFinalizacao:'Conferir se a tampa está bem crimpada antes de colocar na sacola.',
+    comps:[[arrozC,220],[feijaoC,140],[carneM,120],[macarraoA,60],[salada,60]]});
+
+  mkf('Marmita G · Mista','Marmitas',{rendGramas:780,rendUni:'g',custoEmbalagem:r2(EMB_G),
+    precoVenda:27.90,precos:{ifood:35.90,aiqfome:31.90},vendasMes:310,tempoPreparo:5,
+    utensilios:'Concha de 200ml, pegador, balança',
+    modoPreparo:['Porcionar 260g de arroz e 160g de feijão.','Dividir o compartimento maior entre 90g de frango e 90g de carne moída.','Completar com 100g de purê e 80g de salada.','Fechar, etiquetar e higienizar a borda.'],
+    padraoFinalizacao:'A marmita G leva duas proteínas. Conferir as duas antes de fechar.',
+    comps:[[arrozC,260],[feijaoC,160],[frangoG,90],[carneM,90],[pure,100],[salada,80]]});
+
+  mkf('Marmita Fit · Frango e legumes','Marmitas',{rendGramas:500,rendUni:'g',custoEmbalagem:r2(EMB_MS),
+    precoVenda:24.90,precos:{ifood:31.90,aiqfome:28.90},vendasMes:280,tempoPreparo:4,
+    utensilios:'Balança, pote de 250ml',
+    modoPreparo:['Porcionar 150g de arroz.','Adicionar 120g de frango grelhado.','Completar com 140g de legumes no vapor e 60g de brócolis.','A salada vai no pote à parte, com o molho separado.'],
+    padraoFinalizacao:'Sem feijão e sem fritura. Salada sempre em pote separado.',
+    comps:[[arrozC,150],[frangoG,120],[legumes,140],[brocolisR,60],[salada,60]]});
+
+  mkf('Marmita Executiva · Bife acebolado','Marmitas',{rendGramas:650,rendUni:'g',custoEmbalagem:r2(EMB_M),
+    precoVenda:29.90,precos:{ifood:38.90,aiqfome:34.90},vendasMes:230,tempoPreparo:6,
+    utensilios:'Chapa, pegador, balança',
+    modoPreparo:['Grelhar o bife na hora, 2 minutos de cada lado.','Porcionar 220g de arroz e 140g de feijão.','Adicionar 130g de bife acebolado e 50g de farofa.','Completar com 60g de salada.'],
+    padraoFinalizacao:'O bife é feito na hora. Não montar com antecedência.',
+    comps:[[arrozC,220],[feijaoC,140],[bife,130],[farofa,50],[salada,60]]});
+
+  mkf('Marmita Peixe · Tilápia','Marmitas',{rendGramas:560,rendUni:'g',custoEmbalagem:r2(EMB_MS),
+    precoVenda:28.90,precos:{ifood:36.90,aiqfome:33.90},vendasMes:120,tempoPreparo:6,
+    utensilios:'Fritadeira, escumadeira, balança',
+    modoPreparo:['Fritar as iscas até dourar e escorrer bem.','Porcionar 200g de arroz.','Adicionar 120g de isca de tilápia e 120g de legumes.','Salada no pote à parte.'],
+    padraoFinalizacao:'Escorrer o excesso de óleo por 30 segundos antes de montar.',
+    comps:[[arrozC,200],[tilapiaI,120],[legumes,120],[salada,60]]});
+
+  mkf('Marmita Vegetariana','Marmitas',{rendGramas:580,rendUni:'g',custoEmbalagem:r2(EMB_M),
+    precoVenda:21.90,precos:{ifood:28.90,aiqfome:25.90},vendasMes:95,tempoPreparo:4,
+    utensilios:'Concha de 200ml, balança',
+    modoPreparo:['Porcionar 200g de arroz e 140g de feijão.','Adicionar 120g de legumes no vapor e 80g de brócolis.','Completar com 60g de beterraba cozida e salada.'],
+    padraoFinalizacao:'Conferir que nenhum utensílio usado em carne encostou na marmita.',
+    comps:[[arrozC,200],[feijaoC,140],[legumes,120],[brocolisR,80],[beterrabaC,60],[salada,60]]});
+
+  mkf('Marmita Kids','Marmitas',{rendGramas:380,rendUni:'g',custoEmbalagem:r2(EMB_P),
+    precoVenda:16.90,precos:{ifood:21.90,aiqfome:19.90},vendasMes:140,tempoPreparo:3,
+    utensilios:'Concha de 150ml, balança',
+    modoPreparo:['Porcionar 140g de arroz.','Adicionar 90g de strogonoff de frango.','Completar com 60g de macarrão e 40g de banana frita.'],
+    padraoFinalizacao:'Sem tempero forte e sem pimenta. Porção menor, marmitex de 500ml.',
+    comps:[[arrozC,140],[strog,90],[macarraoA,60],[bananaF,40]]});
+
+  mkf('Marmita Caseira · Frango desfiado','Marmitas',{rendGramas:620,rendUni:'g',custoEmbalagem:r2(EMB_M),
+    precoVenda:23.90,precos:{ifood:30.90,aiqfome:27.90},vendasMes:410,tempoPreparo:4,
+    utensilios:'Concha de 200ml, pegador',
+    modoPreparo:['Porcionar 220g de arroz e 140g de feijão.','Adicionar 130g de frango desfiado ao molho.','Completar com 70g de couve refogada e 60g de salada.'],
+    padraoFinalizacao:'O molho do frango não pode encharcar o arroz. Escorrer antes.',
+    comps:[[arrozC,220],[feijaoC,140],[frangoD,130],[couveR,70],[salada,60]]});
+
+  mkf('Marmita Feijoada · sexta','Marmitas',{rendGramas:700,rendUni:'g',custoEmbalagem:r2(EMB_G),
+    precoVenda:32.90,precos:{ifood:41.90,aiqfome:37.90},vendasMes:180,tempoPreparo:5,
+    utensilios:'Concha de 200ml, balança',
+    modoPreparo:['Porcionar 220g de arroz.','Adicionar 200g de feijão com 90g de linguiça acebolada.','Completar com 70g de couve, 60g de farofa e 60g de banana frita.'],
+    padraoFinalizacao:'Só às sextas. Farofa sempre em cima, nunca embaixo do feijão.',
+    comps:[[arrozC,220],[feijaoC,200],[linguicaR,90],[couveR,70],[farofa,60],[bananaF,60]]});
+
+  /* ---------- marmita do dia: o cliente escolhe, o preço é um só ---------- */
+  const mod={};
+  const idMod=uid();
+  mod[idMod]={id:idMod,nome:'Marmita do dia',cat:'Marmitas',precoBase:26.90,precos:{ifood:34.90,aiqfome:30.90},criada:hoje(),modulos:[
+    {nome:'Proteína',obrigatorio:true,opcoes:[
+      {nome:'Frango grelhado',custo:0,qtd:110,padrao:true,fichaId:frangoG},
+      {nome:'Frango desfiado',custo:0,qtd:130,padrao:false,fichaId:frangoD},
+      {nome:'Carne moída',custo:0,qtd:120,padrao:false,fichaId:carneM},
+      {nome:'Bife acebolado',custo:0,qtd:130,padrao:false,fichaId:bife}]},
+    {nome:'Acompanhamento',obrigatorio:true,opcoes:[
+      {nome:'Macarrão ao alho e óleo',custo:0,qtd:70,padrao:true,fichaId:macarraoA},
+      {nome:'Purê de batata',custo:0,qtd:90,padrao:false,fichaId:pure},
+      {nome:'Farofa',custo:0,qtd:50,padrao:false,fichaId:farofa}]},
+    {nome:'Salada',obrigatorio:false,opcoes:[
+      {nome:'Salada mista',custo:0,qtd:70,padrao:true,fichaId:salada},
+      {nome:'Beterraba cozida',custo:0,qtd:70,padrao:false,fichaId:beterrabaC}]},
+    {nome:'Base',obrigatorio:true,opcoes:[
+      {nome:'Arroz e feijão',custo:0,qtd:0,padrao:true,fichaId:''}]},
+    {nome:'Embalagem',obrigatorio:true,opcoes:[
+      {nome:'Marmitex 750ml completo',custo:r2(EMB_M),padrao:true,fichaId:''}]}
+  ]};
+  // a base leva arroz e feijão de verdade, somados como custo fixo do módulo
+  mod[idMod].modulos[3].opcoes[0].custo = 0; mod[idMod].modulos[3].opcoes[0].fichaId = arrozC; mod[idMod].modulos[3].opcoes[0].qtd = 220;
+
+  return {
+    insumos:i, fichas:f, modulares:mod,
+    fin:{regime:'simples', aliquota:6, mei:false, impostoFixo:75,
+      canais:[{id:'ifood',nome:'iFood',taxa:27,mix:30},{id:'aiqfome',nome:'Aiqfome',taxa:15,mix:10}],
+      meios:[{id:'m_din',nome:'Dinheiro',tipo:'Dinheiro',taxa:0,prazo:0},
+             {id:'m_pix',nome:'PIX',tipo:'PIX',taxa:0,prazo:0},
+             {id:'m_deb',nome:'Débito',tipo:'Débito',taxa:1.99,prazo:1},
+             {id:'m_cre',nome:'Crédito',tipo:'Crédito',taxa:3.19,prazo:30},
+             {id:'m_vr', nome:'Vale-refeição',tipo:'Voucher',taxa:4.50,prazo:30}],
+      fornecedores:[{id:uid(),nome:FA,contato:'(51) 3333-1010'},{id:uid(),nome:HZ,contato:'(51) 99888-2020'},
+                    {id:uid(),nome:DC,contato:'(51) 3333-3030'},{id:uid(),nome:EM,contato:'(51) 99777-4040'}],
+      custosFixos:[], provisoes:[], funcionarios:[], socios:[], contasBancarias:[], contasPagar:[], contasReceber:[]},
+    fat:{lancado:0, mixIfood:30},
+    cmvAlvo:30,
+    prec:{modo:'cmv', margemAlvo:55, arredondar:'90', usarCartao:true},
+    equipe:[],
+    conta:{restaurante:'Marmitaria do Bairro',nome:'',email:'',telefone:'',cpf:'',nascimento:''},
+    lancamentos:[], categorias:{}, cmvRegistros:[]
+  };
 }
 
 /* ===================== ROTEADOR ===================== */
@@ -2866,6 +3021,7 @@ function viewConta(){
     <div style="display:flex;gap:10px;flex-wrap:wrap">
       <button class="btn btn-ghost" onclick="exportDados()">⬇ Exportar backup (JSON)</button>
       <label class="btn btn-ghost" style="cursor:pointer">⬆ Importar backup<input type="file" accept="application/json,.json" style="display:none" onchange="importarBackup(this)"></label>
+      <button class="btn btn-ghost" onclick="carregarExemplo()">🍱 Carregar loja de exemplo</button>
       <button class="btn btn-ghost" onclick="comecarVazio()">Começar do zero</button>
       <button class="btn btn-ghost" style="color:var(--red);border-color:var(--red)" onclick="if(confirm('Restaurar os dados de exemplo? Seus dados atuais serão substituídos.')){localStorage.removeItem(STORE_KEY);location.reload();}">${icoTrash} Restaurar exemplo</button>
     </div></div>`;
