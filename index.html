@@ -2882,7 +2882,7 @@ function emptyState(t,d,action){return `<div class="empty"><svg viewBox="0 0 24 
    PROJETO NOVO E SEPARADO DO FLOW. Cole a URL e a anon key do projeto criado para
    este app. Enquanto ficarem em branco, o app roda 100% local (localStorage), sem login.
    Rode o script marmita-supabase-setup.sql no SQL Editor antes de ligar a nuvem.        */
-const SUPA_URL='', SUPA_ANON='';
+const SUPA_URL='https://xiqlaxjtngwecidyoxbs.supabase.co', SUPA_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhpcWxheGp0bmd3ZWNpZHlveGJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI2NDI1MTAsImV4cCI6MjA4ODIxODUxMH0.Y0jZjn7AlXzHnqbkSa8j5wQHgtEWGXknDNlA_o_5JFY';
 const sb=(window.supabase&&SUPA_URL.indexOf('http')===0)?window.supabase.createClient(SUPA_URL,SUPA_ANON):null;
 let PERFIL=null, ORG=null, CLOUD=false, ADMIN_MODE=false, RECOVERY=false, MEMBRO_PERMS=null;
 let CLOUD_TS=null, SAVE_STATE='idle', SAVE_RETRY=0, CLOUD_CONFLICT=false, CLOUD_BASE=null, _mergeHouve=false;
