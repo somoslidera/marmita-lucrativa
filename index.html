@@ -712,7 +712,7 @@ thead th{letter-spacing:.7px}
     <a data-route="fichas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h16l-1.2 11a2 2 0 0 1-2 1.8H7.2a2 2 0 0 1-2-1.8L4 8z"/><path d="M4 8l1.6-3.2A2 2 0 0 1 7.4 3.6h9.2a2 2 0 0 1 1.8 1.2L20 8"/><path d="M9.5 8v12M14.5 8v12"/></svg>Marmitas</a>
     <div class="lbl">PREÇO</div>
     <a data-route="precificacao"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Precificação</a>
-    <a data-route="engenharia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 3 5-6"/></svg>Engenharia de Menu</a>
+    <a data-route="engenharia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 3 5-6"/></svg>Engenharia de Cardápio</a>
     <div class="lbl">SUA CONTA</div>
     <a data-route="conta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>Configurações</a>
   </nav>
@@ -768,9 +768,9 @@ function dbCats(){DB.cats=DB.cats||{insumo:[],prato:[]};DB.cats.insumo=DB.cats.i
 const ordPt=arr=>(arr||[]).slice().sort((a,b)=>(''+a).localeCompare((''+b),'pt',{sensitivity:'base'}));
 function catList(t){const def=t==='prato'?DEF_CAT_PRATO:DEF_CAT_INSUMO;const cst=dbCats()[t]||[];return ordPt([...def,...cst.filter(c=>!def.includes(c))]);}
 function isCatPadrao(t,c){return (t==='prato'?DEF_CAT_PRATO:DEF_CAT_INSUMO).includes(c);}
-function subOptionsCMV(sel){nfeEnsureCats();const subs=ordPt(((DB.categorias['CMV']||{subs:[]}).subs)||[]);if(sel&&!subs.includes(sel))subs.unshift(sel);return `<option value="">— subcategoria —</option>`+subs.map(x=>`<option ${x===sel?'selected':''}>${esc(x)}</option>`).join('');}
-function catOptions(t,sel){const list=catList(t).slice();if(sel&&!list.includes(sel))list.unshift(sel);return `<option value="">— categoria —</option>`+list.map(c=>`<option ${c===sel?'selected':''}>${esc(c)}</option>`).join('');}
-function fornOptions(sel){const fs=(DB.fin&&DB.fin.fornecedores)||[];let names=fs.map(f=>f.nome).filter(Boolean);if(sel&&!names.includes(sel))names.push(sel);names=ordPt(names);return `<option value="">— sem fornecedor —</option>`+names.map(nm=>`<option ${nm===sel?'selected':''}>${esc(nm)}</option>`).join('');}
+function subOptionsCMV(sel){nfeEnsureCats();const subs=ordPt(((DB.categorias['CMV']||{subs:[]}).subs)||[]);if(sel&&!subs.includes(sel))subs.unshift(sel);return `<option value="">Escolha a subcategoria</option>`+subs.map(x=>`<option ${x===sel?'selected':''}>${esc(x)}</option>`).join('');}
+function catOptions(t,sel){const list=catList(t).slice();if(sel&&!list.includes(sel))list.unshift(sel);return `<option value="">Escolha a categoria</option>`+list.map(c=>`<option ${c===sel?'selected':''}>${esc(c)}</option>`).join('');}
+function fornOptions(sel){const fs=(DB.fin&&DB.fin.fornecedores)||[];let names=fs.map(f=>f.nome).filter(Boolean);if(sel&&!names.includes(sel))names.push(sel);names=ordPt(names);return `<option value="">Sem fornecedor</option>`+names.map(nm=>`<option ${nm===sel?'selected':''}>${esc(nm)}</option>`).join('');}
 function fornDatalist(){return `<datalist id="forn_dl">${((DB.fin&&DB.fin.fornecedores)||[]).map(f=>`<option value="${esc(f.nome)}"></option>`).join('')}</datalist>`;}
 function ensureFornecedor(nome){nome=(nome||'').trim();if(!nome)return;DB.fin=DB.fin||{};DB.fin.fornecedores=DB.fin.fornecedores||[];if(!DB.fin.fornecedores.some(f=>(f.nome||'').toLowerCase()===nome.toLowerCase()))DB.fin.fornecedores.push({id:uid(),nome,contato:''});}
 
@@ -1012,6 +1012,9 @@ function precPickFicha(id){precFichaId=id||'';precCustoManual=0;viewPrecificacao
 function precSetCustoManual(el){precCustoManual=moneyMask(el);precFichaId='';precRenderResultado();}
 
 function viewPrecificacao(){
+  // abre já mostrando o preço de uma marmita de verdade, em vez de uma tela vazia pedindo custo
+  if(!precFichaId&&!(+precCustoManual>0)){const its=precItens();const pref=its.find(x=>x.tipo!=='modular')||its[0];if(pref)precFichaId=pref.id;}
+  if(precFichaId&&!precItemPorId(precFichaId))precFichaId='';
   $('#topActions').innerHTML=`<button class="btn btn-ghost" onclick="go('fichas')">${icoFicha} Ver marmitas</button>`;
   const tabs=[['calc','Calculadora'],['tabela','Tabela de preços']];
   $('#view').innerHTML=`<div class="pill-filter" style="margin-bottom:18px">${tabs.map(([k,l])=>`<button class="${precTab===k?'on':''}" onclick="precTab='${k}';viewPrecificacao()">${l}</button>`).join('')}</div>
@@ -1027,7 +1030,7 @@ function precCalcHTML(){
 
       <div class="field"><label>Marmita <span class="hint">puxa o custo da ficha</span></label>
         <select class="input" onchange="precPickFicha(this.value)">
-          <option value="">— custo digitado à mão —</option>
+          <option value="">Digitar o custo à mão</option>
           ${itens.map(it=>`<option value="${it.id}" ${it.id===precFichaId?'selected':''}>${esc(it.nome)}${it.tipo==='modular'?' (modular)':''}</option>`).join('')}
         </select></div>
 
@@ -1228,10 +1231,12 @@ function viewDashboard(){
     <div style="font-family:'Fraunces',serif;font-size:27px;font-weight:700;margin-top:3px;color:${cor||'var(--ink)'}">${val}</div>
     <div style="font-size:11.5px;color:var(--soft);margin-top:2px">${sub}</div></div>`;
 
-  $('#view').innerHTML=`
+  const avisoExemplo=(DB._exemplo&&DB.exemploAviso!==false)
+    ?`<div class="alert alert-amber" style="margin-bottom:16px;align-items:flex-start">${icoWarn}<div><b>Sua loja já vem montada.</b> Estes produtos e marmitas são um exemplo com preços de mercado, para você não começar do zero. Troque pelos seus preços, mude o que quiser e apague o que não usa. <a onclick="DB.exemploAviso=false;save();viewDashboard()" style="cursor:pointer;font-weight:700;white-space:nowrap;text-decoration:underline">Entendi</a></div></div>`:'';
+  $('#view').innerHTML=`${avisoExemplo}
   <div class="card card-pad hero-card" style="margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px">
     <div><div class="hero-sub">${esc((DB.conta&&DB.conta.restaurante)||'Sua marmitaria')}</div>
-      <div style="font-size:20px;font-weight:700;font-family:'Fraunces',serif;margin-top:2px">${itens.length} marmita${itens.length>1?'s':''} no cardápio${nMod?` <span style="font-size:13px;font-weight:400;opacity:.75">· ${nMod} modular${nMod>1?'es':''}</span>`:''}</div></div>
+      <div style="font-size:20px;font-weight:700;font-family:'Fraunces',serif;margin-top:2px">${itens.length} marmita${itens.length>1?'s':''} no cardápio${nMod?` <span style="font-size:13px;font-weight:400;opacity:.75;white-space:nowrap">· ${nMod} modular${nMod>1?'es':''}</span>`:''}</div></div>
     <div style="display:flex;gap:10px;flex-wrap:wrap">
       <div class="dash-pill"><span>CMV médio</span><b style="color:${cmvCorRef(cmvMed)}">${comPreco.length?fmtPct(cmvMed):'—'}</b></div>
       <div class="dash-pill"><span>Sobra por marmita</span><b style="color:${mcMed>=0?'var(--green)':'var(--red)'}">${comPreco.length?fmtBRL(mcMed):'—'}</b></div>
@@ -1262,7 +1267,7 @@ function viewDashboard(){
           <div class="bar" style="height:7px"><i style="width:${clamp(x.m.mcTotal/maxMc*100,0,100)}%;background:${x.m.mcTotal>=0?'var(--navy)':'var(--red)'}"></i></div>
         </div>`).join('')}
         ${nMod?`<div style="font-size:11.5px;color:var(--soft);margin-top:2px">As modulares não entram neste ranking: elas não têm média de vendas por mês.</div>`:''}</div>`
-        :`<div style="font-size:12.5px;color:var(--soft)">Preencha a <b>média de vendas por mês</b> em cada ficha para ver o ranking e liberar a Engenharia de Menu.</div>`}
+        :`<div style="font-size:12.5px;color:var(--soft)">Preencha a <b>média de vendas por mês</b> em cada ficha para ver o ranking e liberar a Engenharia de Cardápio.</div>`}
     </div>
   </div>`;
 }
@@ -1382,7 +1387,7 @@ const MOBILE_Q='(max-width:760px)';
 function ehMobile(){try{return window.matchMedia(MOBILE_Q).matches;}catch(e){return false;}}
 
 /* ---- barra inferior: uma rota a um toque, sem abrir gaveta ---- */
-const TAB_ROTULO={dashboard:'Painel',insumos:'Produtos',fichas:'Marmitas',precificacao:'Preço',engenharia:'Menu',conta:'Ajustes'};
+const TAB_ROTULO={dashboard:'Painel',insumos:'Produtos',fichas:'Marmitas',precificacao:'Preço',engenharia:'Cardápio',conta:'Ajustes'};
 function montarTabbar(){
   if(document.getElementById('tabbar'))return;
   const nav=document.getElementById('nav');if(!nav)return;
@@ -1502,6 +1507,14 @@ function prepararImpressao(area,classe){
 /* ---- carrega a loja de exemplo no restaurante aberto ----
    Serve para demonstrar o app com números reais e para o dono ver como uma
    operação completa fica montada, antes de cadastrar a dele. */
+/* Loja recém-criada na nuvem (compra pela Kiwify ou cadastro pelo admin): nasce com a
+   loja de exemplo inteira, batizada com o nome que veio da compra. Sem apertar nada. */
+function novaLojaDe(org){
+  const d=dadosExemplo();
+  const nome=((org&&org.nome)||'').trim();
+  if(nome&&!/^(unidade|restaurante)$/i.test(nome))d.conta.restaurante=nome;
+  return d;
+}
 function carregarExemplo(){
   const temCoisa=Object.keys(DB.insumos||{}).length||Object.keys(DB.fichas||{}).length;
   if(temCoisa&&!confirm('Isto substitui os produtos, as marmitas e os parâmetros deste restaurante pelos da loja de exemplo.\n\nO que você já cadastrou aqui será perdido. Continuar?'))return;
@@ -1715,7 +1728,7 @@ function dadosExemplo(){
                     {id:uid(),nome:DC,contato:'(51) 3333-3030'},{id:uid(),nome:EM,contato:'(51) 99777-4040'}],
       custosFixos:[], provisoes:[], funcionarios:[], socios:[], contasBancarias:[], contasPagar:[], contasReceber:[]},
     fat:{lancado:0, mixIfood:30},
-    cmvAlvo:30,
+    cmvAlvo:30, _exemplo:true,
     prec:{modo:'cmv', margemAlvo:55, arredondar:'90', usarCartao:true},
     equipe:[],
     conta:{restaurante:'Marmitaria do Bairro',nome:'',email:'',telefone:'',cpf:'',nascimento:''},
@@ -1729,7 +1742,7 @@ const ROUTES={
   insumos:{title:'Produtos',render:viewInsumos},
   fichas:{title:'Marmitas',render:viewFichas},
   precificacao:{title:'Precificação',render:viewPrecificacao},
-  engenharia:{title:'Engenharia de Menu',render:viewEngenharia},
+  engenharia:{title:'Engenharia de Cardápio',render:viewEngenharia},
   conta:{title:'Configurações',render:viewConta},
 };
 let current='dashboard';
@@ -1901,7 +1914,7 @@ function renderInsCompList(){
   const el=$('#insCompList'); if(!el)return;
   el.innerHTML=draftInsComps.length?draftInsComps.map((row,idx)=>{const ins=DB.insumos[row[0]];return`
     <div class="comp-row" style="grid-template-columns:1fr 86px 80px 32px">
-      <select class="input" onchange="draftInsComps[${idx}][0]=this.value;updInsPreview();renderInsCompList()"><option value="">— insumo —</option>${opts.map(o=>`<option value="${o.id}" ${o.id===row[0]?'selected':''}>${o.nome}${o.tipo==='preparado'?' (prep.)':''}</option>`).join('')}</select>
+      <select class="input" onchange="draftInsComps[${idx}][0]=this.value;updInsPreview();renderInsCompList()"><option value="">Escolha o produto</option>${opts.map(o=>`<option value="${o.id}" ${o.id===row[0]?'selected':''}>${o.nome}${o.tipo==='preparado'?' (prep.)':''}</option>`).join('')}</select>
       <input class="input" type="number" step="0.001" value="${row[1]||''}" placeholder="qtd" oninput="draftInsComps[${idx}][1]=parseFloat(this.value)||0;insCompCost(${idx});updInsPreview()">
       <div class="ccost"><span id="ic_cst${idx}">${fmtBRL(ins?custoInsumoBase(ins)*(row[1]||0):0)}</span><div style="font-size:10px;color:var(--soft)">${ins?bSym(ins.uni):''}</div></div>
       <button class="mini-del" onclick="draftInsComps.splice(${idx},1);renderInsCompList();updInsPreview()">${icoX}</button>
@@ -2211,7 +2224,7 @@ function custoModular(m,modo){let t=0;(m.modulos||[]).forEach(mod=>{const ops=(m
   if(modo==='padrao'){const def=ops.find(o=>o.padrao)||ops[0];t+=opcaoCusto(def);}
   else if(modo==='min'){t+=mod.obrigatorio?Math.min(...vals):0;}
   else{t+=Math.max(...vals);}});return t;}
-function linkOpts(sel){const items=[...Object.values(DB.fichas).map(f=>({id:f.id,nome:f.nome})),...Object.values(DB.insumos).filter(i=>i.tipo==='preparado').map(p=>({id:p.id,nome:p.nome+' (prep.)'}))];return `<option value="">— selecione —</option>`+items.map(it=>`<option value="${it.id}" ${it.id===sel?'selected':''}>${esc(it.nome)}</option>`).join('');}
+function linkOpts(sel){const items=[...Object.values(DB.fichas).map(f=>({id:f.id,nome:f.nome})),...Object.values(DB.insumos).filter(i=>i.tipo==='preparado').map(p=>({id:p.id,nome:p.nome+' (prep.)'}))];return `<option value="">Selecione</option>`+items.map(it=>`<option value="${it.id}" ${it.id===sel?'selected':''}>${esc(it.nome)}</option>`).join('');}
 function modOptRow(mi,oi){const o=draftMod.modulos[mi].opcoes[oi];const linked=o.fichaId!=null&&o.fichaId!=='';
   return `<div class="mod-opt">
     <input type="radio" name="modpad${mi}" ${o.padrao?'checked':''} onclick="modSetPadrao(${mi},${oi})" title="Combinação padrão">
@@ -2300,7 +2313,7 @@ function simularPreco(){
   <div class="modal-body">
     <div class="field"><label>Partir de uma ficha <span class="hint">opcional, preenche o custo</span></label>
       <select class="input" onchange="if(this.value){document.getElementById('sim_custo').value=fmtMoneyInput(custoProduto(DB.fichas[this.value]));simRecalc();}">
-        <option value="">— custo manual —</option>${Object.values(DB.fichas).sort((a,b)=>a.nome.localeCompare(b.nome)).map(f=>`<option value="${f.id}">${esc(f.nome)}</option>`).join('')}</select></div>
+        <option value="">Custo manual</option>${Object.values(DB.fichas).sort((a,b)=>a.nome.localeCompare(b.nome)).map(f=>`<option value="${f.id}">${esc(f.nome)}</option>`).join('')}</select></div>
     <div class="grid-2">
       <div class="field"><label>Custo do produto</label><div class="money-wrap"><span class="money-pre">R$</span><input class="input money-inp" id="sim_custo" inputmode="numeric" value="0,00" oninput="moneyMask(this);simRecalc()"></div></div>
       <div class="field"><label>Margem de contribuição desejada <span class="hint">%</span></label><input class="input" id="sim_margem" type="number" step="1" value="60" oninput="simRecalc()"></div>
@@ -2407,7 +2420,7 @@ function editFicha(id){
               <div style="font-size:13px;font-weight:700">Preço de venda</div>
               <button type="button" class="btn btn-ghost btn-sm" onclick="fichaSugerirPrecos()" title="Preenche os preços usando a regra da Precificação">✨ Sugerir preço ideal</button>
             </div>
-            <div style="font-size:11.5px;color:var(--muted);margin-bottom:12px">A média de vendas/mês é o que libera a Engenharia de Menu.</div>
+            <div style="font-size:11.5px;color:var(--muted);margin-bottom:12px">A média de vendas/mês é o que libera a Engenharia de Cardápio.</div>
             <div class="fx-g2">
               <div class="field" style="margin:0"><label>Preço de venda praticado <span class="hint">balcão</span></label>
                 <div style="display:flex;gap:7px;align-items:center">
@@ -2956,7 +2969,7 @@ function canalRestaurar(id){const arq=canaisArquivados();const c=arq.find(x=>x.i
   save();viewConta();toast('Canal "'+c.nome+'" restaurado com os preços das fichas');}
 
 /* ===================== EQUIPE ===================== */
-const ACESSOS=[['dashboard','Painel'],['insumos','Produtos'],['fichas','Marmitas'],['precificacao','Precificação'],['engenharia','Engenharia de Menu'],['conta','Configurações']];
+const ACESSOS=[['dashboard','Painel'],['insumos','Produtos'],['fichas','Marmitas'],['precificacao','Precificação'],['engenharia','Engenharia de Cardápio'],['conta','Configurações']];
 const NIVEIS={
   admin:{label:'Administrador',desc:'Acesso total a tudo',perms:ACESSOS.map(a=>a[0])},
   gerente:{label:'Gerente',desc:'Cardápio e preço, sem configurações',perms:['dashboard','insumos','fichas','precificacao','engenharia']},
@@ -3221,7 +3234,7 @@ async function entrarComoCliente(orgId,email){
   if(!org){telaMensagem('Acesso indisponível','Não foi possível carregar seu restaurante. Tente novamente mais tarde.');return;}
   ORG=org;CLOUD_TS=org.atualizado_em||null;CLOUD_CONFLICT=false;SAVE_RETRY=0;CLOUD_BASE=_cloneDB(org.dados||{});
   if(org.status==='suspenso'){telaMensagem('Acesso suspenso','Seu acesso está temporariamente suspenso. Fale com a Lidera para reativar.');return;}
-  DB=(org.dados&&org.dados.insumos)?org.dados:emptyDB();
+  if(org.dados&&org.dados.insumos)DB=org.dados;else{DB=novaLojaDe(org);setTimeout(()=>{try{save();}catch(e){}},1500);}
   CLOUD=true;ADMIN_MODE=false;hideAdmin();
   // O ADMINISTRADOR da conta tem SEMPRE acesso total a todos os módulos, mesmo que o e-mail dele também esteja na Equipe.
   // Admin = e-mail cadastrado em Configurações (conta.email); se ainda não houver, quem NÃO está na Equipe é o dono.
@@ -3555,7 +3568,7 @@ async function donoDesvincular(orgId){
 const FLOW_API_BASE='https://fvcbxorfstqqeewocxkf.supabase.co/functions/v1/flow-api';
 async function toggleStatus(orgId,status){const novo=status==='suspenso'?'ativo':'suspenso';await sb.from('marmita_organizacoes').update({status:novo}).eq('id',orgId);toast(novo==='ativo'?'Acesso reativado':'Acesso suspenso');showAdmin();}
 async function abrirCliente(orgId){let org=null;try{org=(await sb.from('marmita_organizacoes').select('*').eq('id',orgId).single()).data;}catch(e){}if(!org)return toast('Erro ao abrir');
-  ORG=org;CLOUD_TS=org.atualizado_em||null;CLOUD_CONFLICT=false;SAVE_RETRY=0;CLOUD_BASE=_cloneDB(org.dados||{});DB=(org.dados&&org.dados.insumos)?org.dados:emptyDB();CLOUD=true;ADMIN_MODE=true;MEMBRO_PERMS=null;hideAdmin();bannerCloud();renderFoot();setSaveStatus('saved');
+  ORG=org;CLOUD_TS=org.atualizado_em||null;CLOUD_CONFLICT=false;SAVE_RETRY=0;CLOUD_BASE=_cloneDB(org.dados||{});if(org.dados&&org.dados.insumos)DB=org.dados;else{DB=novaLojaDe(org);setTimeout(()=>{try{save();}catch(e){}},1500);}CLOUD=true;ADMIN_MODE=true;MEMBRO_PERMS=null;hideAdmin();bannerCloud();renderFoot();setSaveStatus('saved');
   document.querySelectorAll('#nav a[data-route]').forEach(a=>a.style.display='');go('dashboard');}
 function voltarAdmin(){CLOUD=false;ADMIN_MODE=false;ORG=null;CLOUD_TS=null;CLOUD_CONFLICT=false;const ss=document.getElementById('saveStatus');if(ss)ss.style.display='none';const bn=document.getElementById('cloudBanner');if(bn)bn.style.display='none';showAdmin();}
 
