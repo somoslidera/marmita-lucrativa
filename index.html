@@ -1537,6 +1537,39 @@ function verFicha(id){
     </div>`);
 }
 
+/* custo de referência do preparado: por grama dá R$ 0,00 na tela, então mostramos por 100 g / 100 ml, ou por unidade */
+function custoPrepRef(p){const u=custoInsumoBase(p);return BASE[p.uni]==='un'?{rot:'Custo por unidade',val:u}:{rot:'Custo por 100 '+bSym(p.uni),val:u*100};}
+/* ---- preparado em modo leitura: mesma lógica da marmita, com Editar dentro ---- */
+function verPreparado(id){
+  const p=DB.insumos[id];if(!p||p.tipo!=='preparado')return;
+  const custoUnit=custoInsumoBase(p), rendBase=(p.rendimento||1)*(TO_BASE[p.uni]||1), custoTotal=custoUnit*rendBase;
+  const linhas=(p.comps||[]).map(([cid,q])=>{const ins=DB.insumos[cid];if(!ins)return '';
+    const c=custoInsumoBase(ins)*(q||0);
+    return `<div class="frow"><span class="l" style="min-width:0">${esc(ins.nome)}${ins.tipo==='preparado'?' <span class="tag tag-navy" style="font-size:9.5px;vertical-align:middle">preparado</span>':''}<div style="font-size:11.5px;color:var(--soft)">${nNum(q)} ${bSym(ins.uni)}</div></span><b>${fmtBRL(c)}</b></div>`;}).join('');
+  const usadoEm=Object.values(DB.fichas).filter(f=>(f.comps||[]).some(c=>c[0]===id)).map(f=>esc(f.nome));
+  const usadoPrep=Object.values(DB.insumos).filter(x=>x.tipo==='preparado'&&x.id!==id&&(x.comps||[]).some(c=>c[0]===id)).map(x=>esc(x.nome));
+  const passos=(p.modoPreparo||[]).filter(x=>(x||'').trim());
+  const meta=[p.cat?esc(p.cat):'',`rende ${fmtN(p.rendimento)} ${uSym(p.uni)}`,p.tempoPreparo?p.tempoPreparo+' min de preparo':''].filter(Boolean).join(' · ');
+  modal(`<div class="modal-head"><div style="min-width:0"><h3 style="margin:0">${esc(p.nome)} <span class="tag tag-navy" style="font-size:10.5px;vertical-align:middle">preparado</span></h3><div style="font-size:12px;color:var(--muted);margin-top:2px">${meta}</div></div><button class="x" onclick="closeModal()">${icoX}</button></div>
+    <div class="modal-body" style="padding:18px 26px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px">
+        <div style="border:1px solid var(--line);border-radius:12px;padding:10px 12px"><div style="font-size:11.5px;color:var(--muted);font-weight:600">Custo da receita</div><div style="font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:var(--navy);line-height:1.15">${fmtBRL(custoTotal)}</div><div style="font-size:11.5px;color:var(--soft)">rende ${fmtN(p.rendimento)} ${uSym(p.uni)}</div></div>
+        <div style="border:1px solid var(--line);border-radius:12px;padding:10px 12px"><div style="font-size:11.5px;color:var(--muted);font-weight:600">${custoPrepRef(p).rot}</div><div style="font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:var(--navy);line-height:1.15">${fmtBRL(custoPrepRef(p).val)}</div><div style="font-size:11.5px;color:var(--soft)">base do custo nas marmitas</div></div>
+      </div>
+      <div class="ttl" style="font-size:13.5px;margin-bottom:4px">Ingredientes</div>
+      ${linhas||'<div style="font-size:12.5px;color:var(--soft)">Nenhum ingrediente na receita.</div>'}
+      <div class="frow div" style="font-size:14px"><span class="l"><b>Custo da receita</b></span><b>${fmtBRL(custoTotal)}</b></div>
+      ${passos.length?`<div class="ttl" style="font-size:13.5px;margin:16px 0 6px">Modo de preparo</div>${passos.map((x,i)=>`<div style="font-size:12.5px;margin-bottom:4px"><b>${i+1}.</b> ${esc(x)}</div>`).join('')}`:''}
+      ${p.utensilios?`<div class="ttl" style="font-size:13.5px;margin:16px 0 6px">Utensílios</div><div style="font-size:12.5px">${esc(p.utensilios)}</div>`:''}
+      <div class="ttl" style="font-size:13.5px;margin:16px 0 6px">Onde é usado</div>
+      <div style="font-size:12.5px;color:${(usadoEm.length||usadoPrep.length)?'var(--ink)':'var(--soft)'}">${usadoEm.length?'Marmitas: '+usadoEm.join(', ')+'.':''}${usadoPrep.length?(usadoEm.length?' ':'')+'Preparados: '+usadoPrep.join(', ')+'.':''}${(!usadoEm.length&&!usadoPrep.length)?'Ainda não entra em nenhuma marmita.':''}</div>
+    </div>
+    <div class="modal-foot" style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;padding:14px 26px;border-top:1px solid var(--line)">
+      <button class="btn btn-ghost" onclick="closeModal()">Fechar</button>
+      <button class="btn btn-primary" onclick="closeModal();editPreparado('${p.id}')">${icoEdit} Editar</button>
+    </div>`);
+}
+
 /* Loja recém-criada na nuvem (compra pela Kiwify ou cadastro pelo admin): nasce com a
    loja de exemplo inteira, batizada com o nome que veio da compra. Sem apertar nada. */
 function novaLojaDe(org){
@@ -2135,7 +2168,7 @@ function fichaCard(f,fixosPct){
 }
 function preparadoCard(p){
   const custoTotal=custoInsumoBase(p)*((p.rendimento||1)*(TO_BASE[p.uni]||1)), custoUnit=custoInsumoBase(p);
-  return `<div class="fcard" data-nome="${esc(p.nome)}" style="cursor:pointer" onclick="editPreparado('${p.id}')">
+  return `<div class="fcard" data-nome="${esc(p.nome)}" style="cursor:pointer" onclick="verPreparado('${p.id}')">
     <div class="fcard-top"><div class="fcard-ic" style="background:rgba(29,53,115,.12);color:var(--navy)">${icoFicha}</div>
       <div style="min-width:0"><div class="fcard-nm">${esc(p.nome)}</div><div class="fcard-sub">Preparado · ${esc(p.cat||'—')}</div></div>
       <span class="fcard-badge tag-navy">Preparado</span></div>
@@ -2145,8 +2178,8 @@ function preparadoCard(p){
       <a class="edit" onclick="event.stopPropagation();editPreparado('${p.id}')">Editar ↗</a></div>
     <div class="frow"><span class="l">Custo da receita</span><b>${fmtBRL(custoTotal)}</b></div>
     <div class="frow div"><span class="l">Rendimento</span><b>${fmtN(p.rendimento)} ${uSym(p.uni)}</b></div>
-    <div class="frow"><span class="l">Custo por ${bSym(p.uni)}</span><b>${fmtBRL(custoUnit)}</b></div>
-    <div style="font-size:11.5px;color:var(--soft);margin-top:8px">Usado como ingrediente nas fichas.</div>
+    <div class="frow"><span class="l">${custoPrepRef(p).rot}</span><b>${fmtBRL(custoPrepRef(p).val)}</b></div>
+    <div style="font-size:11.5px;color:var(--soft);margin-top:8px">Entra como ingrediente nas marmitas. Toque para ver a receita.</div>
   </div>`;
 }
 function duplicarFicha(id){const f=DB.fichas[id];if(!f)return;const c=JSON.parse(JSON.stringify(f));c.id=uid();c.nome=f.nome+' (cópia)';c.criada=hoje();DB.fichas[c.id]=c;save();viewFichas();toast('Ficha duplicada');}
