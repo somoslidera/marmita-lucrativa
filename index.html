@@ -964,16 +964,11 @@ function precLinhas(custo){
   });
 }
 
-/* ---- o que dá para precificar: marmitas comuns + marmitas modulares ----
-   Na modular o cliente escolhe (proteína, tamanho…) e o preço é um só, então
-   o custo que manda no preço é o da combinação MAIS CARA. Precificar pelo
-   custo padrão quebra no dia em que todo mundo escolhe a opção mais cara. */
+/* ---- o que dá para precificar: as marmitas cadastradas ----
+   (a marmita modular foi desligada em 05/09/2026: confundia mais do que ajudava) */
 function precItens(){
   const out=Object.values(DB.fichas).map(f=>({
     tipo:'ficha', id:f.id, nome:f.nome, cat:f.cat, obj:f, custo:custoProduto(f)}));
-  Object.values(DB.modulares||{}).forEach(m=>out.push({
-    tipo:'modular', id:m.id, nome:m.nome, cat:m.cat, obj:m,
-    custo:custoModular(m,'max'), custoPadrao:custoModular(m,'padrao'), custoMin:custoModular(m,'min')}));
   return out.sort((a,b)=>(a.nome||'').localeCompare(b.nome||''));
 }
 function precItemPorId(id){return precItens().find(x=>x.id===id)||null;}
@@ -1507,6 +1502,41 @@ function prepararImpressao(area,classe){
 /* ---- carrega a loja de exemplo no restaurante aberto ----
    Serve para demonstrar o app com números reais e para o dono ver como uma
    operação completa fica montada, antes de cadastrar a dele. */
+/* ---- ficha técnica em modo leitura: toque no card abre, analisa, e edita se quiser ---- */
+function verFicha(id){
+  const f=DB.fichas[id];if(!f)return;
+  const m=metricasFicha(f);
+  const insumos=custoFicha(f), emb=f.custoEmbalagem||0, custo=insumos+emb;
+  const rend=(f.rendGramas>0)?`${nNum(f.rendGramas)} ${uSym(f.rendUni||'g')}`:'';
+  const linhas=(f.comps||[]).map(([cid,q])=>{const ins=DB.insumos[cid];if(!ins)return '';
+    const c=custoInsumoBase(ins)*(q||0);
+    return `<div class="frow"><span class="l" style="min-width:0">${esc(ins.nome)}${ins.tipo==='preparado'?' <span class="tag tag-navy" style="font-size:9.5px;vertical-align:middle">preparado</span>':''}<div style="font-size:11.5px;color:var(--soft)">${nNum(q)} ${bSym(ins.uni)}</div></span><b>${fmtBRL(c)}</b></div>`;}).join('');
+  const canais=[{nome:'Balcão',m:m.balcao}].concat((m.canais||[]).map(x=>({nome:x.canal.nome,m:x.m})));
+  const precos=canais.map(x=>`<div style="border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0">
+      <div style="font-size:11.5px;color:var(--muted);font-weight:600">${esc(x.nome)}</div>
+      <div style="font-family:'Fraunces',serif;font-size:22px;font-weight:700;color:var(--navy);line-height:1.15">${x.m.preco>0?fmtBRL(x.m.preco):'—'}</div>
+      ${x.m.preco>0?`<div style="font-size:11.5px;color:${cmvCorRef(x.m.cmv)}">CMV ${fmtPct(x.m.cmv)} · sobra ${fmtBRL(x.m.mc)}</div>`:'<div style="font-size:11.5px;color:var(--soft)">sem preço</div>'}
+    </div>`).join('');
+  const passos=(f.modoPreparo||[]).filter(s=>(s||'').trim());
+  const meta=[f.cat?esc(f.cat):'',rend?'rende '+rend:'',f.tempoPreparo?f.tempoPreparo+' min de preparo':'',f.vendasMes>0?fmtN(f.vendasMes)+' vendas/mês':''].filter(Boolean).join(' · ');
+  modal(`<div class="modal-head"><div style="min-width:0"><h3 style="margin:0">${esc(f.nome)}</h3><div style="font-size:12px;color:var(--muted);margin-top:2px">${meta}</div></div><button class="x" onclick="closeModal()">${icoX}</button></div>
+    <div class="modal-body" style="padding:18px 26px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px">${precos}</div>
+      <div class="ttl" style="font-size:13.5px;margin-bottom:4px">O que vai dentro</div>
+      ${linhas||'<div style="font-size:12.5px;color:var(--soft)">Nenhum produto na ficha.</div>'}
+      <div class="frow div"><span class="l">Produtos</span><b>${fmtBRL(insumos)}</b></div>
+      <div class="frow"><span class="l">Embalagem</span><b>${fmtBRL(emb)}</b></div>
+      <div class="frow" style="font-size:14px"><span class="l"><b>Custo da marmita</b></span><b>${fmtBRL(custo)}</b></div>
+      ${passos.length?`<div class="ttl" style="font-size:13.5px;margin:16px 0 6px">Modo de preparo</div>${passos.map((p,i)=>`<div style="font-size:12.5px;margin-bottom:4px"><b>${i+1}.</b> ${esc(p)}</div>`).join('')}`:''}
+      ${f.padraoFinalizacao?`<div class="ttl" style="font-size:13.5px;margin:16px 0 6px">Padrão de finalização</div><div style="font-size:12.5px">${esc(f.padraoFinalizacao)}</div>`:''}
+    </div>
+    <div class="modal-foot" style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;padding:14px 26px;border-top:1px solid var(--line)">
+      <button class="btn btn-ghost" onclick="closeModal()">Fechar</button>
+      <button class="btn btn-ghost" onclick="draftFichaId='${f.id}';imprimirFicha()">🖨️ Imprimir</button>
+      <button class="btn btn-primary" onclick="closeModal();editFicha('${f.id}')">${icoEdit} Editar</button>
+    </div>`);
+}
+
 /* Loja recém-criada na nuvem (compra pela Kiwify ou cadastro pelo admin): nasce com a
    loja de exemplo inteira, batizada com o nome que veio da compra. Sem apertar nada. */
 function novaLojaDe(org){
@@ -1691,32 +1721,8 @@ function dadosExemplo(){
     padraoFinalizacao:'Só às sextas. Farofa sempre em cima, nunca embaixo do feijão.',
     comps:[[arrozC,220],[feijaoC,200],[linguicaR,90],[couveR,70],[farofa,60],[bananaF,60]]});
 
-  /* ---------- marmita do dia: o cliente escolhe, o preço é um só ---------- */
-  const mod={};
-  const idMod=uid();
-  mod[idMod]={id:idMod,nome:'Marmita do dia',cat:'Marmitas',precoBase:26.90,precos:{ifood:34.90,aiqfome:30.90},criada:hoje(),modulos:[
-    {nome:'Proteína',obrigatorio:true,opcoes:[
-      {nome:'Frango grelhado',custo:0,qtd:110,padrao:true,fichaId:frangoG},
-      {nome:'Frango desfiado',custo:0,qtd:130,padrao:false,fichaId:frangoD},
-      {nome:'Carne moída',custo:0,qtd:120,padrao:false,fichaId:carneM},
-      {nome:'Bife acebolado',custo:0,qtd:130,padrao:false,fichaId:bife}]},
-    {nome:'Acompanhamento',obrigatorio:true,opcoes:[
-      {nome:'Macarrão ao alho e óleo',custo:0,qtd:70,padrao:true,fichaId:macarraoA},
-      {nome:'Purê de batata',custo:0,qtd:90,padrao:false,fichaId:pure},
-      {nome:'Farofa',custo:0,qtd:50,padrao:false,fichaId:farofa}]},
-    {nome:'Salada',obrigatorio:false,opcoes:[
-      {nome:'Salada mista',custo:0,qtd:70,padrao:true,fichaId:salada},
-      {nome:'Beterraba cozida',custo:0,qtd:70,padrao:false,fichaId:beterrabaC}]},
-    {nome:'Base',obrigatorio:true,opcoes:[
-      {nome:'Arroz e feijão',custo:0,qtd:0,padrao:true,fichaId:''}]},
-    {nome:'Embalagem',obrigatorio:true,opcoes:[
-      {nome:'Marmitex 750ml completo',custo:r2(EMB_M),padrao:true,fichaId:''}]}
-  ]};
-  // a base leva arroz e feijão de verdade, somados como custo fixo do módulo
-  mod[idMod].modulos[3].opcoes[0].custo = 0; mod[idMod].modulos[3].opcoes[0].fichaId = arrozC; mod[idMod].modulos[3].opcoes[0].qtd = 220;
-
   return {
-    insumos:i, fichas:f, modulares:mod,
+    insumos:i, fichas:f, modulares:{},
     fin:{regime:'simples', aliquota:6, mei:false, impostoFixo:75,
       canais:[{id:'ifood',nome:'iFood',taxa:27,mix:30},{id:'aiqfome',nome:'Aiqfome',taxa:15,mix:10}],
       meios:[{id:'m_din',nome:'Dinheiro',tipo:'Dinheiro',taxa:0,prazo:0},
@@ -1943,7 +1949,7 @@ function saveInsumo(id){const nome=$('#i_nome').value.trim();if(!nome)return toa
 function delInsumo(id){
   const usadoFicha=Object.values(DB.fichas).some(f=>(f.comps||[]).some(c=>c[0]===id));
   const usadoPrep=Object.values(DB.insumos).some(x=>x.tipo==='preparado'&&(x.comps||[]).some(c=>c[0]===id));
-  if((usadoFicha||usadoPrep)&&!confirm('Este insumo é usado em fichas ou preparos. Remover mesmo assim?'))return;
+  if(!confirm((usadoFicha||usadoPrep)?'Este produto entra em marmitas ou preparados. Excluir mesmo assim?':'Excluir este produto?'))return;
   delete DB.insumos[id];save();viewInsumos();toast('Insumo removido');}
 
 /* ---- GERENCIAR CATEGORIAS (Insumos · Pratos · Fornecedores) ---- */
@@ -2078,13 +2084,12 @@ function viewFichas(){
   $('#topActions').innerHTML=`<button class="btn btn-primary" onclick="editFicha()">${icoPlus} Nova marmita</button>`
     +`<button class="btn btn-primary" onclick="novoPreparado()">${icoPlus} Novo preparado</button>`
     +`<button class="btn btn-ghost" onclick="go('precificacao')">${ico('mc')} Precificar</button>`
-    +`<button class="btn btn-ghost" onclick="editModular()">${icoPlus} Nova modular</button>`
     +`<button class="btn btn-ghost" onclick="gerenciarCategorias('prato')">≡ Categorias</button>`
     +`<button class="btn btn-ghost" onclick="baixarModeloFichas()">⬇ Baixar modelo</button>`
     +`<label class="btn btn-ghost" style="cursor:pointer">⬆ Importar<input type="file" accept=".csv,.xlsx,.xls" style="display:none" onchange="importarFichas(this)"></label>`;
   const fichas=Object.values(DB.fichas);
   const preparados=Object.values(DB.insumos).filter(i=>i.tipo==='preparado');
-  const modulares=Object.values(DB.modulares||{});
+  const modulares=[]; // marmita modular desligada: confundia mais do que ajudava
   const cats=['Todas',...new Set(fichas.map(f=>f.cat).filter(Boolean))];
   if(modulares.length)cats.push('Modular');
   if(preparados.length)cats.push('Preparado');
@@ -2099,8 +2104,11 @@ function viewFichas(){
   if(fichaFiltro==='Todas'||fichaFiltro==='Preparado')cards+=preparados.slice().sort((a,b)=>a.nome.localeCompare(b.nome)).map(p=>preparadoCard(p)).join('');
   const temAlgo=cards!=='';
   $('#view').innerHTML=`
-  <div class="section-head"><div class="pill-filter">${cats.map(c=>`<button class="${c===fichaFiltro?'on':''}" onclick="fichaFiltro='${c}';viewFichas()">${c}</button>`).join('')}</div>
+  <div class="section-head"><div class="pill-filter">${cats.map(c=>`<button class="${c===fichaFiltro?'on':''}" onclick="fichaFiltro='${c}';viewFichas()">${c==='Preparado'?'Preparos':c}</button>`).join('')}</div>
     <input class="input" id="fichaBusca" value="${esc(buscaFicha)}" style="max-width:260px" placeholder="🔎 Buscar marmita por nome..." oninput="buscaFicha=this.value;filtrarCards(this,'#fgrid')"></div>
+  <div class="prep-faixa" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:-4px 0 14px;padding:10px 14px;border:1px dashed var(--line);border-radius:12px">
+    <div style="font-size:12.5px;color:var(--muted);min-width:0"><b style="color:var(--ink)">Preparos</b> são receitas de base (arroz, feijão, molho) que entram nas marmitas.${preparados.length?` Você tem <b>${preparados.length}</b>.`:''}</div>
+    <button class="btn btn-ghost btn-sm" style="white-space:nowrap" onclick="novoPreparado()">${icoPlus} Novo preparado</button></div>
   ${temAlgo?`<div class="fgrid" id="fgrid">${cards}</div>`:emptyState('Nenhuma marmita cadastrada','Monte a ficha da sua marmita a partir dos produtos que você compra.','editFicha()')}`;
   if(buscaFicha){const _e=$('#fichaBusca');if(_e)filtrarCards(_e,'#fgrid');}
 }
@@ -2111,13 +2119,13 @@ function fichaCard(f,fixosPct){
   const peso=pesoFichaKg(f)*1000;
   const rend=(f.rendGramas>0)?`${nNum(f.rendGramas)} ${uSym(f.rendUni||'g')}`:(peso>0?`${fmtN(peso)}gr`:`${fmtN(f.porcoes||1)} porç${(f.porcoes||1)>1?'ões':'ão'}`);
   const cmvCls=cmvClasse(cmv);const badge=preco>0?`<span class="fcard-badge ${cmvCls==='excelente'?'tag-green':cmvCls==='atencao'?'tag-amber':'tag-red'}">CMV ${fmtPct(cmv)}</span>`:`<span class="fcard-badge tag-amber">sem preço</span>`;
-  return `<div class="fcard" data-nome="${esc(f.nome)}">
+  return `<div class="fcard" data-nome="${esc(f.nome)}" style="cursor:pointer" onclick="verFicha('${f.id}')">
     <div class="fcard-top"><div class="fcard-ic">${icoFicha}</div>
       <div style="min-width:0"><div class="fcard-nm">${esc(f.nome)}</div><div class="fcard-sub">${esc(f.cat||'—')}${f.criada?' · criada '+f.criada:''}</div></div>${badge}</div>
     <div class="fcard-acts"><span>${(f.comps||[]).length} insumos</span>
-      <button onclick="delFicha('${f.id}')">${icoTrash} Excluir</button>
-      <button onclick="duplicarFicha('${f.id}')">${icoCopy} Duplicar</button>
-      <a class="edit" onclick="editFicha('${f.id}')">Editar ↗</a></div>
+      <button onclick="event.stopPropagation();delFicha('${f.id}')">${icoTrash} Excluir</button>
+      <button onclick="event.stopPropagation();duplicarFicha('${f.id}')">${icoCopy} Duplicar</button>
+      <a class="edit" onclick="event.stopPropagation();editFicha('${f.id}')">Editar ↗</a></div>
     <div class="frow so-desktop"><span class="l">Produtos</span><b>${fmtBRL(insumos)}</b></div>
     <div class="frow so-desktop"><span class="l">Embalagem</span><b>${fmtBRL(emb)}</b></div>
     <div class="frow div"><span class="l">Rendimento</span><b>${rend}</b></div>
@@ -2127,14 +2135,14 @@ function fichaCard(f,fixosPct){
 }
 function preparadoCard(p){
   const custoTotal=custoInsumoBase(p)*((p.rendimento||1)*(TO_BASE[p.uni]||1)), custoUnit=custoInsumoBase(p);
-  return `<div class="fcard" data-nome="${esc(p.nome)}">
+  return `<div class="fcard" data-nome="${esc(p.nome)}" style="cursor:pointer" onclick="editPreparado('${p.id}')">
     <div class="fcard-top"><div class="fcard-ic" style="background:rgba(29,53,115,.12);color:var(--navy)">${icoFicha}</div>
       <div style="min-width:0"><div class="fcard-nm">${esc(p.nome)}</div><div class="fcard-sub">Preparado · ${esc(p.cat||'—')}</div></div>
       <span class="fcard-badge tag-navy">Preparado</span></div>
     <div class="fcard-acts"><span>${(p.comps||[]).length} ingredientes</span>
-      <button onclick="delInsumo('${p.id}')">${icoTrash} Excluir</button>
-      <button onclick="duplicarPreparado('${p.id}')">${icoCopy} Duplicar</button>
-      <a class="edit" onclick="editPreparado('${p.id}')">Editar ↗</a></div>
+      <button onclick="event.stopPropagation();delInsumo('${p.id}')">${icoTrash} Excluir</button>
+      <button onclick="event.stopPropagation();duplicarPreparado('${p.id}')">${icoCopy} Duplicar</button>
+      <a class="edit" onclick="event.stopPropagation();editPreparado('${p.id}')">Editar ↗</a></div>
     <div class="frow"><span class="l">Custo da receita</span><b>${fmtBRL(custoTotal)}</b></div>
     <div class="frow div"><span class="l">Rendimento</span><b>${fmtN(p.rendimento)} ${uSym(p.uni)}</b></div>
     <div class="frow"><span class="l">Custo por ${bSym(p.uni)}</span><b>${fmtBRL(custoUnit)}</b></div>
@@ -2609,7 +2617,7 @@ function coletarFichaForm(id){const nome=($('#f_nome').value||'').trim();
 function saveFicha(id){if(!($('#f_nome').value||'').trim())return toast('Informe o nome');
   const obj=coletarFichaForm(id);
   DB.fichas[obj.id]=obj;save();closeModal();viewFichas();toast(id?'Ficha atualizada':'Ficha criada');}
-function delFicha(id){if(!confirm('Remover esta ficha?'))return;delete DB.fichas[id];save();closeModal();viewFichas();toast('Ficha removida');}
+function delFicha(id){if(!confirm('Excluir esta marmita?'))return;delete DB.fichas[id];save();closeModal();viewFichas();toast('Ficha removida');}
 function imprimirFicha(){
   const f=$('#f_nome')?coletarFichaForm(draftFichaId):(draftFichaId?DB.fichas[draftFichaId]:null);
   if(!f||!f.nome)return toast('Informe o nome da ficha antes de imprimir');
