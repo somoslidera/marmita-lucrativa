@@ -1406,8 +1406,8 @@ function moverBotaoTema(){
   const b=document.getElementById('themeBtn');if(!b)return;
   const topo=document.querySelector('.topbar'), marca=document.querySelector('.brand-row');
   const acoes=document.getElementById('topActions');
-  if(ehMobile()){if(topo&&b.parentElement!==topo)topo.insertBefore(b,acoes);}
-  else if(marca&&b.parentElement!==marca)marca.appendChild(b);
+  if(ehMobile()){b.style.display='none';} // no celular o tema é trocado em Ajustes, a barra de cima fica só com a ação principal
+  else{b.style.display='';if(marca&&b.parentElement!==marca)marca.appendChild(b);}
 }
 function aplicarLayoutMobile(){montarTabbar();moverBotaoTema();marcarTab(typeof current!=='undefined'?current:'dashboard');}
 
@@ -2465,7 +2465,7 @@ function editFicha(id){
       <div class="fx-foot">
         <button class="btn btn-ghost" onclick="closeModal()" style="color:var(--gold);border:0;background:transparent;padding-left:0">Cancelar</button>
         <div style="flex:1"></div>
-        <button class="btn btn-ghost" onclick="imprimirFicha()">🖨️ Imprimir</button>
+        ${id?`<button class="btn btn-ghost" onclick="imprimirFicha()">🖨️ Imprimir</button>`:''}
         ${id?`<button class="btn btn-ghost" style="color:var(--red);border-color:var(--red)" onclick="delFicha('${id}')">Excluir</button>`:''}
         <button class="btn btn-gold" onclick="saveFicha('${id||''}')">${id?'Salvar marmita':'Criar marmita'}</button>
       </div>
@@ -3016,11 +3016,14 @@ function viewConta(){
       <div class="field"><label>Nome completo</label><input class="input" value="${esc(c.nome)}" placeholder="Seu nome" oninput="DB.conta.nome=this.value;finTouch()"></div>
       <div class="field"><label>E-mail</label><input class="input" value="${esc(c.email)}" placeholder="voce@email.com" oninput="DB.conta.email=this.value;finTouch()"></div>
     </div>
-    <div class="grid-2">
-      <div class="field"><label>Telefone</label><input class="input" value="${esc(c.telefone)}" placeholder="(11) 99999-9999" oninput="DB.conta.telefone=this.value;finTouch()"></div>
-      <div class="field"><label>CPF</label><input class="input" value="${esc(c.cpf)}" placeholder="000.000.000-00" oninput="DB.conta.cpf=this.value;finTouch()"></div>
+    <div class="field" style="max-width:340px"><label>Telefone</label><input class="input" value="${esc(c.telefone)}" placeholder="(11) 99999-9999" oninput="DB.conta.telefone=this.value;finTouch()"></div>
+    <div style="border-top:1px solid var(--line);margin:16px 0 14px"></div>
+    <div class="ttl" style="font-size:14px">Aparência</div>
+    <div class="desc" style="margin-bottom:10px">O app começa no tema escuro. Troque quando quiser, fica salvo neste aparelho.</div>
+    <div class="chan-tabs" style="margin-top:0;max-width:340px">
+      <button class="${document.body.classList.contains('dark')?'':'on'}" onclick="applyTheme('light');viewConta()">☀️ Claro</button>
+      <button class="${document.body.classList.contains('dark')?'on':''}" onclick="applyTheme('dark');viewConta()">🌙 Escuro</button>
     </div>
-    <div class="field" style="max-width:240px"><label>Data de nascimento</label><input class="input" type="date" value="${esc(c.nascimento)}" oninput="DB.conta.nascimento=this.value;finTouch()"></div>
   </div>`;
   else if(contaTab==='param')body=contaParam();
   else if(contaTab==='seg'){
@@ -3639,7 +3642,7 @@ async function consRemover(cid,nome){const n=clientesDe(cid);if(!confirm('Remove
 
 /* ---- DEMOS · restaurantes de demonstração por segmento ---- */
 
-applyTheme((function(){try{return localStorage.getItem('marmita_theme')||'light';}catch(e){return 'light';}})());
+applyTheme((function(){try{return localStorage.getItem('marmita_theme')||'dark';}catch(e){return 'dark';}})());
 if(sb)sb.auth.onAuthStateChange((event)=>{if(event==='PASSWORD_RECOVERY'){RECOVERY=true;telaNovaSenha();}});
 aplicarLayoutMobile();
 (function(){
