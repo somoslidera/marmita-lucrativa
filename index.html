@@ -1652,70 +1652,70 @@ function dadosExemplo(){
   const mkf=(nome,cat,o)=>{const id=uid();f[id]=Object.assign({id,nome,cat,porcoes:1,custoEmbalagem:0,precoVenda:0,precos:{},vendasMes:0,tempoPreparo:0,utensilios:'',modoPreparo:[],padraoFinalizacao:'',foto:'',comps:[],criada:hoje()},o);return id;};
 
   mkf('Marmita P · Frango grelhado','Marmitas',{rendGramas:450,rendUni:'g',custoEmbalagem:r2(EMB_P),
-    precoVenda:18.90,precos:{ifood:24.90,aiqfome:21.90},vendasMes:520,tempoPreparo:4,
+    precoVenda:18.90,precos:{ifood:24.90},vendasMes:520,tempoPreparo:4,
     utensilios:'Concha de 150ml, pegador, balança',
     modoPreparo:['Porcionar 180g de arroz na base da marmitex.','Acomodar 110g de feijão ao lado, sem encostar na salada.','Colocar 90g de frango grelhado no compartimento maior.','Fechar, etiquetar com data e higienizar a borda.'],
     padraoFinalizacao:'Marmita fechada e etiquetada em até 2 minutos após a montagem. Temperatura acima de 60 graus na saída.',
     comps:[[arrozC,180],[feijaoC,110],[frangoG,90],[salada,70]]});
 
   mkf('Marmita M · Carne moída','Marmitas',{rendGramas:600,rendUni:'g',custoEmbalagem:r2(EMB_M),
-    precoVenda:22.90,precos:{ifood:29.90,aiqfome:26.90},vendasMes:640,tempoPreparo:4,
+    precoVenda:22.90,precos:{ifood:29.90},vendasMes:640,tempoPreparo:4,
     utensilios:'Concha de 200ml, pegador, balança',
     modoPreparo:['Porcionar 220g de arroz e 140g de feijão.','Adicionar 120g de carne moída refogada.','Completar com 60g de macarrão e 60g de salada.','Fechar, etiquetar e higienizar a borda.'],
     padraoFinalizacao:'Conferir se a tampa está bem crimpada antes de colocar na sacola.',
     comps:[[arrozC,220],[feijaoC,140],[carneM,120],[macarraoA,60],[salada,60]]});
 
   mkf('Marmita G · Mista','Marmitas',{rendGramas:780,rendUni:'g',custoEmbalagem:r2(EMB_G),
-    precoVenda:27.90,precos:{ifood:35.90,aiqfome:31.90},vendasMes:310,tempoPreparo:5,
+    precoVenda:27.90,precos:{ifood:35.90},vendasMes:310,tempoPreparo:5,
     utensilios:'Concha de 200ml, pegador, balança',
     modoPreparo:['Porcionar 260g de arroz e 160g de feijão.','Dividir o compartimento maior entre 90g de frango e 90g de carne moída.','Completar com 100g de purê e 80g de salada.','Fechar, etiquetar e higienizar a borda.'],
     padraoFinalizacao:'A marmita G leva duas proteínas. Conferir as duas antes de fechar.',
     comps:[[arrozC,260],[feijaoC,160],[frangoG,90],[carneM,90],[pure,100],[salada,80]]});
 
   mkf('Marmita Fit · Frango e legumes','Marmitas',{rendGramas:500,rendUni:'g',custoEmbalagem:r2(EMB_MS),
-    precoVenda:24.90,precos:{ifood:31.90,aiqfome:28.90},vendasMes:280,tempoPreparo:4,
+    precoVenda:24.90,precos:{ifood:31.90},vendasMes:280,tempoPreparo:4,
     utensilios:'Balança, pote de 250ml',
     modoPreparo:['Porcionar 150g de arroz.','Adicionar 120g de frango grelhado.','Completar com 140g de legumes no vapor e 60g de brócolis.','A salada vai no pote à parte, com o molho separado.'],
     padraoFinalizacao:'Sem feijão e sem fritura. Salada sempre em pote separado.',
     comps:[[arrozC,150],[frangoG,120],[legumes,140],[brocolisR,60],[salada,60]]});
 
   mkf('Marmita Executiva · Bife acebolado','Marmitas',{rendGramas:650,rendUni:'g',custoEmbalagem:r2(EMB_M),
-    precoVenda:29.90,precos:{ifood:38.90,aiqfome:34.90},vendasMes:230,tempoPreparo:6,
+    precoVenda:29.90,precos:{ifood:38.90},vendasMes:230,tempoPreparo:6,
     utensilios:'Chapa, pegador, balança',
     modoPreparo:['Grelhar o bife na hora, 2 minutos de cada lado.','Porcionar 220g de arroz e 140g de feijão.','Adicionar 130g de bife acebolado e 50g de farofa.','Completar com 60g de salada.'],
     padraoFinalizacao:'O bife é feito na hora. Não montar com antecedência.',
     comps:[[arrozC,220],[feijaoC,140],[bife,130],[farofa,50],[salada,60]]});
 
   mkf('Marmita Peixe · Tilápia','Marmitas',{rendGramas:560,rendUni:'g',custoEmbalagem:r2(EMB_MS),
-    precoVenda:28.90,precos:{ifood:36.90,aiqfome:33.90},vendasMes:120,tempoPreparo:6,
+    precoVenda:28.90,precos:{ifood:36.90},vendasMes:120,tempoPreparo:6,
     utensilios:'Fritadeira, escumadeira, balança',
     modoPreparo:['Fritar as iscas até dourar e escorrer bem.','Porcionar 200g de arroz.','Adicionar 120g de isca de tilápia e 120g de legumes.','Salada no pote à parte.'],
     padraoFinalizacao:'Escorrer o excesso de óleo por 30 segundos antes de montar.',
     comps:[[arrozC,200],[tilapiaI,120],[legumes,120],[salada,60]]});
 
   mkf('Marmita Vegetariana','Marmitas',{rendGramas:580,rendUni:'g',custoEmbalagem:r2(EMB_M),
-    precoVenda:21.90,precos:{ifood:28.90,aiqfome:25.90},vendasMes:95,tempoPreparo:4,
+    precoVenda:21.90,precos:{ifood:28.90},vendasMes:95,tempoPreparo:4,
     utensilios:'Concha de 200ml, balança',
     modoPreparo:['Porcionar 200g de arroz e 140g de feijão.','Adicionar 120g de legumes no vapor e 80g de brócolis.','Completar com 60g de beterraba cozida e salada.'],
     padraoFinalizacao:'Conferir que nenhum utensílio usado em carne encostou na marmita.',
     comps:[[arrozC,200],[feijaoC,140],[legumes,120],[brocolisR,80],[beterrabaC,60],[salada,60]]});
 
   mkf('Marmita Kids','Marmitas',{rendGramas:380,rendUni:'g',custoEmbalagem:r2(EMB_P),
-    precoVenda:16.90,precos:{ifood:21.90,aiqfome:19.90},vendasMes:140,tempoPreparo:3,
+    precoVenda:16.90,precos:{ifood:21.90},vendasMes:140,tempoPreparo:3,
     utensilios:'Concha de 150ml, balança',
     modoPreparo:['Porcionar 140g de arroz.','Adicionar 90g de strogonoff de frango.','Completar com 60g de macarrão e 40g de banana frita.'],
     padraoFinalizacao:'Sem tempero forte e sem pimenta. Porção menor, marmitex de 500ml.',
     comps:[[arrozC,140],[strog,90],[macarraoA,60],[bananaF,40]]});
 
   mkf('Marmita Caseira · Frango desfiado','Marmitas',{rendGramas:620,rendUni:'g',custoEmbalagem:r2(EMB_M),
-    precoVenda:23.90,precos:{ifood:30.90,aiqfome:27.90},vendasMes:410,tempoPreparo:4,
+    precoVenda:23.90,precos:{ifood:30.90},vendasMes:410,tempoPreparo:4,
     utensilios:'Concha de 200ml, pegador',
     modoPreparo:['Porcionar 220g de arroz e 140g de feijão.','Adicionar 130g de frango desfiado ao molho.','Completar com 70g de couve refogada e 60g de salada.'],
     padraoFinalizacao:'O molho do frango não pode encharcar o arroz. Escorrer antes.',
     comps:[[arrozC,220],[feijaoC,140],[frangoD,130],[couveR,70],[salada,60]]});
 
   mkf('Marmita Feijoada · sexta','Marmitas',{rendGramas:700,rendUni:'g',custoEmbalagem:r2(EMB_G),
-    precoVenda:32.90,precos:{ifood:41.90,aiqfome:37.90},vendasMes:180,tempoPreparo:5,
+    precoVenda:32.90,precos:{ifood:41.90},vendasMes:180,tempoPreparo:5,
     utensilios:'Concha de 200ml, balança',
     modoPreparo:['Porcionar 220g de arroz.','Adicionar 200g de feijão com 90g de linguiça acebolada.','Completar com 70g de couve, 60g de farofa e 60g de banana frita.'],
     padraoFinalizacao:'Só às sextas. Farofa sempre em cima, nunca embaixo do feijão.',
@@ -1724,7 +1724,7 @@ function dadosExemplo(){
   return {
     insumos:i, fichas:f, modulares:{},
     fin:{regime:'simples', aliquota:6, mei:false, impostoFixo:75,
-      canais:[{id:'ifood',nome:'iFood',taxa:27,mix:30},{id:'aiqfome',nome:'Aiqfome',taxa:15,mix:10}],
+      canais:[{id:'ifood',nome:'iFood',taxa:27,mix:35}], // só o iFood vem de fábrica; outros canais entram em Parâmetros de preço
       meios:[{id:'m_din',nome:'Dinheiro',tipo:'Dinheiro',taxa:0,prazo:0},
              {id:'m_pix',nome:'PIX',tipo:'PIX',taxa:0,prazo:0},
              {id:'m_deb',nome:'Débito',tipo:'Débito',taxa:1.99,prazo:1},
@@ -3019,7 +3019,7 @@ function viewConta(){
     <div class="field" style="max-width:340px"><label>Telefone</label><input class="input" value="${esc(c.telefone)}" placeholder="(11) 99999-9999" oninput="DB.conta.telefone=this.value;finTouch()"></div>
     <div style="border-top:1px solid var(--line);margin:16px 0 14px"></div>
     <div class="ttl" style="font-size:14px">Aparência</div>
-    <div class="desc" style="margin-bottom:10px">O app começa no tema escuro. Troque quando quiser, fica salvo neste aparelho.</div>
+    <div class="desc" style="margin-bottom:10px">O app começa no tema claro. Troque quando quiser, fica salvo neste aparelho.</div>
     <div class="chan-tabs" style="margin-top:0;max-width:340px">
       <button class="${document.body.classList.contains('dark')?'':'on'}" onclick="applyTheme('light');viewConta()">☀️ Claro</button>
       <button class="${document.body.classList.contains('dark')?'on':''}" onclick="applyTheme('dark');viewConta()">🌙 Escuro</button>
@@ -3642,7 +3642,7 @@ async function consRemover(cid,nome){const n=clientesDe(cid);if(!confirm('Remove
 
 /* ---- DEMOS · restaurantes de demonstração por segmento ---- */
 
-applyTheme((function(){try{return localStorage.getItem('marmita_theme')||'dark';}catch(e){return 'dark';}})());
+applyTheme((function(){try{return localStorage.getItem('marmita_theme')||'light';}catch(e){return 'light';}})());
 if(sb)sb.auth.onAuthStateChange((event)=>{if(event==='PASSWORD_RECOVERY'){RECOVERY=true;telaNovaSenha();}});
 aplicarLayoutMobile();
 (function(){
