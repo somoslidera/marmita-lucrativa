@@ -3034,6 +3034,29 @@ let FORMACAO=null;
 let contaTab='conta';
 function esc(s){return (s==null?'':s).toString().replace(/"/g,'&quot;');}
 function exportDados(){const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='marmita-lucrativa-dados.json';a.click();toast('Dados exportados');}
+/* ---- IMPORTAR PACOTE DE FICHAS (Cardápio Lucrativo) · mescla por nome, nunca apaga nada ---- */
+function importarPacote(input){const f=input&&input.files&&input.files[0];if(input)input.value='';if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const d=JSON.parse(rd.result);if(!d||d.tipo!=='pacote-marmita-lucrativa'||!d.insumos||!d.fichas)throw 0;aplicarPacote(d);}catch(e){toast('Arquivo inválido. Use o pacote do Cardápio Lucrativo (.json).');}};rd.readAsText(f);}
+function aplicarPacote(d){
+  const norm=s=>(s||'').toString().trim().toLowerCase();
+  const porNome={};Object.values(DB.insumos).forEach(i=>{const k=norm(i.nome);if(!porNome[k])porNome[k]=i.id;});
+  const src=d.insumos,map={};let criados=0,reusados=0;const pend=new Set(Object.keys(src));let guard=0;
+  while(pend.size&&guard++<60){ // prontos primeiro; preparados só quando os componentes já têm id
+    Array.from(pend).forEach(id=>{const s=src[id];if(!s)return pend.delete(id);
+      if(s.tipo==='preparado'&&(s.comps||[]).some(([c])=>src[c]&&!map[c]))return;
+      const ex=porNome[norm(s.nome)];
+      if(ex){map[id]=ex;reusados++;}
+      else{const nid=uid();const n=JSON.parse(JSON.stringify(s));n.id=nid;if(n.comps)n.comps=n.comps.map(([c,q])=>[map[c]||c,q]);DB.insumos[nid]=n;map[id]=nid;porNome[norm(n.nome)]=nid;criados++;
+        dbCats();if(n.cat&&!DB.cats.insumo.some(c=>c.toLowerCase()===n.cat.toLowerCase()))DB.cats.insumo.push(n.cat);}
+      pend.delete(id);});
+  }
+  const nomesF={};Object.values(DB.fichas).forEach(f=>{nomesF[norm(f.nome)]=1;});
+  let fichas=0,puladas=0;
+  Object.values(d.fichas).forEach(s=>{if(nomesF[norm(s.nome)]){puladas++;return;}
+    const nid=uid();const n=JSON.parse(JSON.stringify(s));n.id=nid;n.criada=hoje();n.comps=(n.comps||[]).map(([c,q])=>[map[c]||c,q]).filter(([c])=>DB.insumos[c]);
+    DB.fichas[nid]=n;fichas++;nomesF[norm(n.nome)]=1;dbCats();if(n.cat&&!DB.cats.prato.some(c=>c.toLowerCase()===n.cat.toLowerCase()))DB.cats.prato.push(n.cat);});
+  save();renderFoot();go('fichas');
+  toast(fichas+' marmitas importadas'+(puladas?' ('+puladas+' já existiam)':'')+' · '+criados+' produtos criados, '+reusados+' reaproveitados');
+}
 function importarBackup(input){const f=input&&input.files&&input.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const d=JSON.parse(rd.result);if(!d||!d.insumos||!d.fichas)throw 0;DB=d;save();renderFoot();go('dashboard');toast('Backup importado com sucesso');}catch(e){toast('Arquivo inválido, selecione um backup do Marmita Lucrativa');}};rd.readAsText(f);}
 function comecarVazio(){if(!confirm('Isto apaga tudo e inicia o app vazio, sem dados de exemplo. Deseja continuar?'))return;
   DB={insumos:{},fichas:{},modulares:{},fin:{regime:'simples',aliquota:6,mei:false,impostoFixo:75,canais:[{id:'ifood',nome:'iFood',taxa:27,mix:0}],meios:[{id:'m_din',nome:'Dinheiro',tipo:'Dinheiro',taxa:0,prazo:0},{id:'m_pix',nome:'PIX',tipo:'PIX',taxa:0,prazo:0},{id:'m_deb',nome:'Débito',tipo:'Débito',taxa:1.99,prazo:1},{id:'m_cre',nome:'Crédito',tipo:'Crédito',taxa:3.19,prazo:30}],fornecedores:[],custosFixos:[],provisoes:[],funcionarios:[],socios:[],contasBancarias:[],contasPagar:[],contasReceber:[]},fat:{lancado:0,mixIfood:0},cmvAlvo:30,prec:{modo:'cmv',margemAlvo:55,arredondar:'90',usarCartao:true},equipe:[],conta:{restaurante:'',nome:'',email:'',telefone:'',cpf:'',nascimento:''},lancamentos:[],categorias:{},cmvRegistros:[]};
@@ -3078,6 +3101,7 @@ function viewConta(){
     <div style="display:flex;gap:10px;flex-wrap:wrap">
       <button class="btn btn-ghost" onclick="exportDados()">⬇ Exportar backup (JSON)</button>
       <label class="btn btn-ghost" style="cursor:pointer">⬆ Importar backup<input type="file" accept="application/json,.json" style="display:none" onchange="importarBackup(this)"></label>
+      <label class="btn btn-ghost" style="cursor:pointer">📦 Importar pacote de fichas<input type="file" accept="application/json,.json" style="display:none" onchange="importarPacote(this)"></label>
       <button class="btn btn-ghost" onclick="carregarExemplo()">🍱 Carregar loja de exemplo</button>
       <button class="btn btn-ghost" onclick="comecarVazio()">Começar do zero</button>
       <button class="btn btn-ghost" style="color:var(--red);border-color:var(--red)" onclick="if(confirm('Restaurar os dados de exemplo? Seus dados atuais serão substituídos.')){localStorage.removeItem(STORE_KEY);location.reload();}">${icoTrash} Restaurar exemplo</button>
